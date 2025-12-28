@@ -22,7 +22,7 @@ This is a WhatsApp bot built using the Baileys library for group management, inc
 Step 1: Fork the Repository
 
 <div align="center">
-  <a href="https://github.com/heroestech68/BUGFIXED-SULEXH-XMD/fork">
+  <a href="https://github.com/heroestech68/BUGBOT/fork">
     <img src="https://img.shields.io/badge/Fork-Repository-blue?style=for-the-badge" />
   </a>
 </div>
@@ -41,7 +41,7 @@ Step 2: Get Pair Code
 
 Step 3: Deploy Now
 
-<div align="center"><!-- 🔴 RENDER DEPLOY BUTTON --><a href="https://render.com/deploy?repo=https://github.com/heroestech68/BUGFIXED-SULEXH-XMD">
+<div align="center"><!-- 🔴 RENDER DEPLOY BUTTON --><a href="https://render.com/deploy?repo=https://github.com/heroestech68/BUGBOT">
   <img src="https://render.com/images/deploy-to-render-button.svg" alt="Deploy to Render" />
 </a><br><br>
 
@@ -81,7 +81,7 @@ Bugfixed Sulexh XMD helps WhatsApp group admins manage groups efficiently using 
 
 🛠️ Setup & Installation
 
-git clone https://github.com/mruniquehacker/Knightbot-MD.git
-cd Knightbot-MD
+git clone https://github.com/heroestech68/BUGBOT.git
+cd BUGBOT
 npm install
 node index.js
