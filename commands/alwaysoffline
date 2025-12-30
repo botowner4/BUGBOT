@@ -1,128 +1,90 @@
 /**
- * BUGFIXED-SULEXH-XMD - AlwaysOffline Command
+ * BUGFIXED-SULEXH-XMD - AlwaysOffline Command (REALISTIC)
  */
 
 const fs = require('fs');
 const path = require('path');
 const isOwnerOrSudo = require('../lib/isOwner');
 
-// Path to store configuration
 const configPath = path.join(__dirname, '..', 'data', 'alwaysoffline.json');
 
-// Initialize config file
 function initConfig() {
     if (!fs.existsSync(configPath)) {
-        fs.writeFileSync(configPath, JSON.stringify({ enabled: false }, null, 2));
+        fs.mkdirSync(path.dirname(configPath), { recursive: true });
+        fs.writeFileSync(
+            configPath,
+            JSON.stringify({ enabled: false }, null, 2)
+        );
     }
     return JSON.parse(fs.readFileSync(configPath));
 }
 
-// Toggle AlwaysOffline
+function saveConfig(config) {
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+}
+
+// COMMAND
 async function alwaysofflineCommand(sock, chatId, message) {
     try {
         const senderId = message.key.participant || message.key.remoteJid;
         const isOwner = await isOwnerOrSudo(senderId, sock, chatId);
 
         if (!message.key.fromMe && !isOwner) {
-            await sock.sendMessage(chatId, {
-                text: '❌ This command is only available for the owner!',
-                contextInfo: {
-                    newsletterJid: '0029VbAD3222f3EIZyXe6w16@broadcast',
-                    newsletterName: 'BUGFIXED-SULEXH-XMD',
-                    serverMessageId: -1
-                }
-            });
+            await sock.sendMessage(chatId, { text: '❌ Owner only command!' });
             return;
         }
 
-        // Get command args
-        const args =
-            message.message?.conversation?.trim().split(' ').slice(1) ||
-            message.message?.extendedTextMessage?.text?.trim().split(' ').slice(1) ||
-            [];
+        const text =
+            message.message?.conversation ||
+            message.message?.extendedTextMessage?.text ||
+            '';
 
-        // Load config
+        const args = text.trim().split(/\s+/).slice(1);
         const config = initConfig();
 
-        if (args.length > 0) {
-            const action = args[0].toLowerCase();
-            if (action === 'on' || action === 'enable') config.enabled = true;
-            else if (action === 'off' || action === 'disable') config.enabled = false;
-            else {
-                await sock.sendMessage(chatId, {
-                    text: '❌ Invalid option! Use: .alwaysoffline on/off',
-                    contextInfo: {
-                        newsletterJid: '0029VbAD3222f3EIZyXe6w16@broadcast',
-                        newsletterName: 'BUGFIXED-SULEXH-XMD',
-                        serverMessageId: -1
-                    }
-                });
-                return;
-            }
+        if (args[0] === 'on' || args[0] === 'enable') {
+            config.enabled = true;
+        } else if (args[0] === 'off' || args[0] === 'disable') {
+            config.enabled = false;
         } else {
             config.enabled = !config.enabled;
         }
 
-        // Save config
-        fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+        saveConfig(config);
 
-        // Confirmation message
         await sock.sendMessage(chatId, {
-            text: `✅ AlwaysOffline has been ${config.enabled ? 'enabled' : 'disabled'}!`,
-            contextInfo: {
-                newsletterJid: '0029VbAD3222f3EIZyXe6w16@broadcast',
-                newsletterName: 'BUGFIXED-SULEXH-XMD',
-                serverMessageId: -1
-            }
+            text: `✅ AlwaysOffline ${config.enabled ? 'ENABLED' : 'DISABLED'}`
         });
-
-    } catch (error) {
-        console.error('Error in alwaysoffline command:', error);
-        await sock.sendMessage(chatId, {
-            text: '❌ Error processing command!',
-            contextInfo: {
-                newsletterJid: '0029VbAD3222f3EIZyXe6w16@broadcast',
-                newsletterName: 'BUGFIXED-SULEXH-XMD',
-                serverMessageId: -1
-            }
-        });
+    } catch (e) {
+        console.error('AlwaysOffline command error:', e);
     }
 }
 
-// Check if AlwaysOffline enabled
+// CHECK
 function isAlwaysOfflineEnabled() {
     try {
-        const config = initConfig();
-        return config.enabled;
-    } catch (error) {
+        return initConfig().enabled;
+    } catch {
         return false;
     }
 }
 
-// Handle AlwaysOffline logic
+// HANDLER (CORE LOGIC)
 async function handleAlwaysOffline(sock, message) {
     if (!isAlwaysOfflineEnabled()) return false;
 
     const jid = message.key.remoteJid;
     const isGroup = jid.endsWith('@g.us');
 
-    // Suppress receipts in DMs only
-    if (!isGroup) {
-        return true; // skip sending read/delivery receipts
-    }
-
-    // Groups: normal receipts
+    // Force offline presence
     try {
-        await sock.sendReadReceipt(
-            jid,
-            message.key.participant || jid,
-            [message.key.id]
-        );
-    } catch (err) {
-        console.error('AlwaysOffline group receipt error:', err);
-    }
+        await sock.sendPresenceUpdate('unavailable', jid);
+    } catch {}
 
-    return true;
+    // ❌ Do NOT send read receipts in private chats
+    if (!isGroup) return true;
+
+    return false;
 }
 
 module.exports = {
