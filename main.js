@@ -38,7 +38,11 @@ const { isSudo } = require('./lib/index');
 const isOwnerOrSudo = require('./lib/isOwner');
 const { autotypingCommand, isAutotypingEnabled, handleAutotypingForMessage, handleAutotypingForCommand } = require('./commands/autotyping');
 const { autoreadCommand, isAutoreadEnabled, handleAutoread } = require('./commands/autoread');
-const { alwaysofflineCommand, isAlwaysofflineEnabled, handleAlwaysoffline }  = require('./commands/alwaysoffline'); 
+const {
+    alwaysofflineCommand,
+    isAlwaysOfflineEnabled,
+    handleAlwaysOffline
+} = require('./commands/alwaysoffline');
 const { autorecordingCommand, isAutorecordingEnabled, handleAutorecordingForMessage, handleAutorecordingForCommand } = require('./commands/autorecording');
                                                                                                                                                                                                                                                                                                                                                                                                                                         
 // Command imports
@@ -1020,9 +1024,9 @@ async function handleMessages(sock, messageUpdate, printLog) {
                 commandExecuted = true;
                 break;
             case userMessage.startsWith('.alwaysoffline'):
-                await alwaysofflineCommand(sock, chatId, message);
-                commandExecuted = true;
-                break;
+    await alwaysofflineCommand(sock, chatId, message);
+    commandExecuted = true;
+    break;
           case userMessage.startsWith('.heart'):
                 await handleHeart(sock, chatId, message);
                 break;
