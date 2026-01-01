@@ -4,8 +4,8 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Serve static files from repo root (so pair.html, any css/js are available)
-app.use(express.static(path.join(__dirname)));
+// Serve static files from ./public (so public/pair.html, any css/js are available)
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Mount your existing router at /code so pair.js's router.get('/', ...) becomes /code
 try {
@@ -15,9 +15,9 @@ try {
   console.warn('Warning: pair.js not found or failed to load. /code will 404.', err.message);
 }
 
-// Serve pair.html at root
+// Serve public/pair.html at root
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'pair.html'));
+  res.sendFile(path.join(__dirname, 'public', 'pair.html'));
 });
 
 app.listen(PORT, () => {
