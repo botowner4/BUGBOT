@@ -20,8 +20,6 @@ setInterval(() => {
           fs.unlink(filePath, () => {});
         }
       });
-    }
-  });
   console.log('🧹 Temp folder auto-cleaned');
 }, 3 * 60 * 60 * 1000);
 
