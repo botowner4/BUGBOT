@@ -1,86 +1,116 @@
-Perfect 👍
-🤖 Bugfixed Sulexh Xmd
+# 🤖 Bugfixed Sulexh XMD
 
-This is a WhatsApp bot built using the Baileys library for group management, including features like tagging all members, muting/unmuting, and many more. It's designed to help admins efficiently manage WhatsApp groups.
+A powerful **WhatsApp Multi-Device Bot** built with the **Baileys library** for advanced group management.  
+Designed to help admins manage WhatsApp groups **efficiently, securely, and easily**.
 
-<div align="center"> 
-  <a href="https://git.io/typing-svg"> 
-    <img src="https://readme-typing-svg.demolab.com?font=Ribeye&size=50&pause=1000&color=33ff00&center=true&width=910&height=100&lines=BUGFIXED-SULEXH;Multi+Device+Whatsapp+Bot;Coded+By+Professor" alt="Typing SVG" />
-  </a> 
-</div> <!-- AUTOPLAY GIF --><div align="center">
-  <img src="https://files.catbox.moe/wc3hy5.mp4" width="600" alt="BUGBOT Demo"/>
-</div><div align="center">
-  <img src="https://img.shields.io/github/followers/heroestech68?style=for-the-badge&label=Followers" alt="Followers"/>
-  <img src="https://img.shields.io/github/stars/heroestech68/BUGBOT?style=for-the-badge&label=Stars" alt="Stars"/>
-  <img src="https://img.shields.io/github/forks/heroestech68/BUGBOT?style=for-the-badge&label=Forks" alt="Forks"/>
-  <img src="https://img.shields.io/github/watchers/heroestech68/BUGBOT?style=for-the-badge&label=Watchers" alt="Watchers"/>
-</div>
 ---
 
-🚀 Steps to Deploy
+<div align="center">   
+  <a href="https://git.io/typing-svg">   
+    <img src="https://readme-typing-svg.demolab.com?font=Ribeye&size=50&pause=1000&color=33ff00&center=true&width=910&height=100&lines=BUGFIXED+SULEXH+XMD;Multi+Device+WhatsApp+Bot;Coded+By+Professor" alt="Typing SVG" />  
+  </a>   
+</div>
 
-Step 1: Fork the Repository
+---
+
+## 🎥 Demo Video
 
 <div align="center">
-  <a href="https://github.com/heroestech68/BUGBOT/fork">
-    <img src="https://img.shields.io/badge/Fork-Repository-blue?style=for-the-badge" />
+  <a href="https://files.catbox.moe/wc3hy5.mp4">
+    <img src="https://img.shields.io/badge/▶%20Watch%20Demo-Video-success?style=for-the-badge&logo=whatsapp" />
   </a>
 </div>
+
 ---
 
-Step 2: Get Pair Code
+## 📊 Repository Stats
 
 <div align="center">
-  <a href="https://knight-bot-paircode.onrender.com" target="_blank">
-    <img src="https://img.shields.io/badge/GET%20PAIR%20CODE-Easy%20Method-ff4d4d?style=for-the-badge" />
-  </a>
-</div>After getting creds.json, upload it to the session folder
 
+![Followers](https://img.shields.io/github/followers/heroestech68?style=for-the-badge&logo=github)
+![Stars](https://img.shields.io/github/stars/heroestech68/BUGBOT?style=for-the-badge&logo=github)
+![Forks](https://img.shields.io/github/forks/heroestech68/BUGBOT?style=for-the-badge&logo=github)
+![Subscribers](https://img.shields.io/github/subscribers/heroestech68/BUGBOT?style=for-the-badge&logo=github)
 
----
+</div>
 
-Step 3: Deploy Now
+<div align="center">
 
-<div align="center"><!-- 🔴 RENDER DEPLOY BUTTON --><a href="https://render.com/deploy?repo=https://github.com/heroestech68/BUGBOT">
-  <img src="https://render.com/images/deploy-to-render-button.svg" alt="Deploy to Render" />
-</a><br><br>
+![Node](https://img.shields.io/badge/Node.js-18+-green?style=for-the-badge&logo=node.js)
+![Last Commit](https://img.shields.io/github/last-commit/heroestech68/BUGBOT?style=for-the-badge)
+![Repo Size](https://img.shields.io/github/repo-size/heroestech68/BUGBOT?style=for-the-badge)
 
-<a href="https://youtu.be/-oz_u1iMgf8">
-  <img src="https://img.shields.io/badge/Deploy%20Tutorial-dc3545?style=for-the-badge&logo=youtube" />
-</a><a href="https://bot-hosting.net/?aff=1068419752923508776">
-  <img src="https://img.shields.io/badge/Deploy%20on%20Panel-28a745?style=for-the-badge" />
-</a></div>
----
-
-⚙️ Features
-
-Tag all members
-
-Admin-only commands
-
-Games (Tic-Tac-Toe)
-
-Text-to-Speech
-
-Sticker creation
-
-Anti-link protection
-
-Group moderation tools
-
-
+</div>
 
 ---
 
-📖 About
+## 🚀 Deployment Guide
 
-Bugfixed Sulexh XMD helps WhatsApp group admins manage groups efficiently using the Baileys multi-device library.
+### 🔹 Step 1: Fork the Repository
 
+<div align="center">  
+  <a href="https://github.com/heroestech68/BUGBOT/fork">  
+    <img src="https://img.shields.io/badge/Fork-Repository-blue?style=for-the-badge&logo=github" />  
+  </a>  
+</div>
 
 ---
 
-🛠️ Setup & Installation
+### 🔹 Step 2: Get Pair Code
 
+<div align="center">  
+  <a href="https://knight-bot-paircode.onrender.com" target="_blank">  
+    <img src="https://img.shields.io/badge/Get%20Pair%20Code-Easy-red?style=for-the-badge&logo=whatsapp" />  
+  </a>  
+</div>
+
+📌 After getting `creds.json`, upload it into the **session** folder.
+
+---
+
+### 🔹 Step 3: Deploy
+
+<div align="center">
+
+<a href="https://render.com/deploy?repo=https://github.com/heroestech68/BUGBOT">  
+  <img src="https://render.com/images/deploy-to-render-button.svg" />  
+</a>
+
+<br><br>
+
+<a href="https://youtu.be/-oz_u1iMgf8">  
+  <img src="https://img.shields.io/badge/Deploy%20Tutorial-YouTube-red?style=for-the-badge&logo=youtube" />  
+</a>
+
+<a href="https://bot-hosting.net/?aff=1068419752923508776">  
+  <img src="https://img.shields.io/badge/Deploy%20on%20Panel-Hosting-green?style=for-the-badge" />  
+</a>
+
+</div>
+
+---
+
+## ⚙️ Features
+
+- 👥 Tag all group members  
+- 🔐 Admin-only commands  
+- 🎮 Games (Tic-Tac-Toe)  
+- 🗣 Text-to-Speech  
+- 🖼 Sticker creation  
+- 🚫 Anti-link protection  
+- 🛡 Advanced group moderation  
+
+---
+
+## 📖 About
+
+**Bugfixed Sulexh XMD** empowers WhatsApp group admins with modern automation using the **Baileys Multi-Device API**.
+
+---
+
+## 🛠️ Local Setup & Installation
+
+```bash
 git clone https://github.com/heroestech68/BUGBOT.git
 cd BUGBOT
 npm install
