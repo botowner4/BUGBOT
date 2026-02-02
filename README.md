@@ -8,12 +8,12 @@ This is a WhatsApp bot built using the Baileys library for group management, inc
     <img src="https://readme-typing-svg.demolab.com?font=Ribeye&size=50&pause=1000&color=33ff00&center=true&width=910&height=100&lines=BUGFIXED-SULEXH;Multi+Device+Whatsapp+Bot;Coded+By+Professor" alt="Typing SVG" />
   </a> 
 </div> <!-- AUTOPLAY GIF --><div align="center">
-  <img src="https://files.catbox.moe/wc3hy5.mp4" width="600" alt="Bugfixed Sulexh XMD Demo"/>
+  <img src="https://files.catbox.moe/wc3hy5.mp4" width="600" alt="BUGBOT Demo"/>
 </div><div align="center">
   <img src="https://img.shields.io/github/followers/heroestech68?style=for-the-badge&label=Followers" alt="Followers"/>
-  <img src="https://img.shields.io/github/stars/heroestech68/Bugbot-XMD?style=for-the-badge&label=Stars" alt="Stars"/>
-  <img src="https://img.shields.io/github/forks/heroestech68/Bugbot-XMD?style=for-the-badge&label=Forks" alt="Forks"/>
-  <img src="https://img.shields.io/github/watchers/heroestech68/Bugbot-XMD?style=for-the-badge&label=Watchers" alt="Watchers"/>
+  <img src="https://img.shields.io/github/stars/heroestech68/BUGBOT?style=for-the-badge&label=Stars" alt="Stars"/>
+  <img src="https://img.shields.io/github/forks/heroestech68/BUGBOT?style=for-the-badge&label=Forks" alt="Forks"/>
+  <img src="https://img.shields.io/github/watchers/heroestech68/BUGBOT?style=for-the-badge&label=Watchers" alt="Watchers"/>
 </div>
 ---
 
@@ -22,7 +22,7 @@ This is a WhatsApp bot built using the Baileys library for group management, inc
 Step 1: Fork the Repository
 
 <div align="center">
-  <a href="https://github.com/heroestech68/BUGFIXED-SULEXH-XMD/fork">
+  <a href="https://github.com/heroestech68/BUGBOT/fork">
     <img src="https://img.shields.io/badge/Fork-Repository-blue?style=for-the-badge" />
   </a>
 </div>
@@ -81,7 +81,7 @@ Bugfixed Sulexh XMD helps WhatsApp group admins manage groups efficiently using 
 
 🛠️ Setup & Installation
 
-git clone https://github.com/mruniquehacker/Knightbot-MD.git
-cd Knightbot-MD
+git clone https://github.com/heroestech68/BUGBOT.git
+cd BUGBOT
 npm install
 node index.js
