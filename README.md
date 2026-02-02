@@ -1,52 +1,49 @@
 # 🤖 BUGFIXED SULEXH XMD
 
-A **Multi-Device WhatsApp Bot** built with **Baileys**, designed for powerful group management, automation, and fun utilities.
+A powerful **Multi-Device WhatsApp Bot** built using **Baileys**, made for professional group management and automation.
 
 ---
 
 <div align="center">
   <a href="https://git.io/typing-svg">
-    <img src="https://readme-typing-svg.demolab.com?font=Ribeye&size=48&pause=1000&color=00FF00&center=true&width=900&height=90&lines=BUGFIXED+SULEXH+XMD;Multi+Device+WhatsApp+Bot;Coded+By+Professor" alt="Typing SVG" />
+    <img src="https://readme-typing-svg.demolab.com?font=Ribeye&size=46&pause=1000&color=00FF00&center=true&width=900&height=90&lines=BUGFIXED+SULEXH+XMD;Multi+Device+WhatsApp+Bot;Coded+By+Professor" />
   </a>
 </div>
 
 ---
 
-<!-- 🔥 AUTOPLAY PREVIEW (GIF) + CLICKABLE FULL VIDEO -->
+<!-- 🔥 AUTOPLAY GIF PREVIEW (CLICK OPENS FULL VIDEO) -->
 <div align="center">
   <a href="https://files.catbox.moe/wc3hy5.mp4">
-    <img 
-      src="https://raw.githubusercontent.com/heroestech68/BUGBOT/main/demo.gif"
-      width="720"
-      style="border-radius:18px; box-shadow:0 0 25px #00ff00;"
-      alt="BUGBOT Demo"
-    />
+    <img src="https://raw.githubusercontent.com/heroestech68/BUGBOT/main/demo.gif"
+         width="720"
+         style="border-radius:18px; box-shadow:0 0 25px #00ff00;" />
   </a>
 </div>
 
 ---
 
-<!-- 🔥 PRO HACKER BADGES -->
+<!-- ✅ STABLE PRO HACKER BADGES (NO USER NOT FOUND) -->
 <div align="center">
 
-  <img src="https://img.shields.io/github/stars/heroestech68/BUGBOT?style=for-the-badge&logo=github&color=00ff00" />
+  <img src="https://img.shields.io/github/stars/heroestech68/BUGBOT?style=for-the-badge&logo=github&color=00ff00"/>
 
-  <img src="https://img.shields.io/github/forks/heroestech68/BUGBOT?style=for-the-badge&logo=github&color=00ff00" />
+  <img src="https://img.shields.io/github/forks/heroestech68/BUGBOT?style=for-the-badge&logo=github&color=00ff00"/>
 
-  <img src="https://img.shields.io/github/watchers/heroestech68/BUGBOT?style=for-the-badge&logo=github&color=00ff00" />
+  <img src="https://img.shields.io/github/issues/heroestech68/BUGBOT?style=for-the-badge&logo=github&color=00ff00"/>
 
-  <img src="https://img.shields.io/github/followers/heroestech68?style=for-the-badge&logo=github&color=00ff00" />
+  <img src="https://img.shields.io/github/license/heroestech68/BUGBOT?style=for-the-badge&logo=github&color=00ff00"/>
 
 </div>
 
 ---
 
-## 🚀 Deployment Steps
+## 🚀 Deployment
 
-### 1️⃣ Fork the Repository
+### 1️⃣ Fork Repo
 <div align="center">
   <a href="https://github.com/heroestech68/BUGBOT/fork">
-    <img src="https://img.shields.io/badge/FORK%20REPO-000000?style=for-the-badge&logo=github&logoColor=00ff00"/>
+    <img src="https://img.shields.io/badge/FORK-REPOSITORY-black?style=for-the-badge&logo=github&logoColor=00ff00"/>
   </a>
 </div>
 
@@ -54,30 +51,26 @@ A **Multi-Device WhatsApp Bot** built with **Baileys**, designed for powerful gr
 
 ### 2️⃣ Get Pair Code
 <div align="center">
-  <a href="https://knight-bot-paircode.onrender.com" target="_blank">
-    <img src="https://img.shields.io/badge/GET%20PAIR%20CODE-FF0000?style=for-the-badge&logo=whatsapp&logoColor=white"/>
+  <a href="https://knight-bot-paircode.onrender.com">
+    <img src="https://img.shields.io/badge/GET%20PAIR%20CODE-red?style=for-the-badge&logo=whatsapp"/>
   </a>
 </div>
 
-> After generating `creds.json`, upload it into the **session** folder.
+Upload `creds.json` into the **session** folder.
 
 ---
 
-### 3️⃣ Deploy Instantly
+### 3️⃣ Deploy
 <div align="center">
 
   <a href="https://render.com/deploy?repo=https://github.com/heroestech68/BUGBOT">
-    <img src="https://render.com/images/deploy-to-render-button.svg" />
+    <img src="https://render.com/images/deploy-to-render-button.svg"/>
   </a>
 
   <br><br>
 
   <a href="https://youtu.be/-oz_u1iMgf8">
-    <img src="https://img.shields.io/badge/DEPLOY%20TUTORIAL-FF0000?style=for-the-badge&logo=youtube"/>
-  </a>
-
-  <a href="https://bot-hosting.net/?aff=1068419752923508776">
-    <img src="https://img.shields.io/badge/PANEL%20HOSTING-00AA00?style=for-the-badge"/>
+    <img src="https://img.shields.io/badge/DEPLOY%20GUIDE-red?style=for-the-badge&logo=youtube"/>
   </a>
 
 </div>
@@ -86,24 +79,17 @@ A **Multi-Device WhatsApp Bot** built with **Baileys**, designed for powerful gr
 
 ## ⚙️ Features
 
-- Tag all members
-- Admin-only commands
-- Anti-link protection
-- Group moderation tools
-- Sticker creation
-- Text-to-Speech
-- Games (Tic-Tac-Toe)
-- Multi-device Baileys support
+- Tag all members  
+- Admin-only commands  
+- Anti-link protection  
+- Sticker creation  
+- Text-to-Speech  
+- Games (Tic-Tac-Toe)  
+- Group moderation tools  
 
 ---
 
-## 📖 About
-
-**Bugfixed Sulexh XMD** empowers WhatsApp group admins with advanced automation, moderation, and entertainment features using the Baileys MD library.
-
----
-
-## 🛠️ Local Installation
+## 🛠️ Local Setup
 
 ```bash
 git clone https://github.com/heroestech68/BUGBOT.git
