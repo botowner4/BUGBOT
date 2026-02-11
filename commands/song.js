@@ -1,50 +1,56 @@
-const path = require('path');
-const fs = require('fs');
-const YTDownloader = require('./lib/ytdl2'); // your class
+const axios = require("axios");
+const yts = require("youtube-yts");
 
 async function songCommand(sock, chatId, message) {
     try {
         const text =
             message.message?.conversation ||
             message.message?.extendedTextMessage?.text ||
-            '';
+            "";
 
-        const query = text.split(' ').slice(1).join(' ').trim();
+        const args = text.trim().split(/\s+/);
+        args.shift();
+        const query = args.join(" ").trim();
+
         if (!query) {
-            return sock.sendMessage(chatId, {
-                text: 'Usage: .song <name or YouTube link>'
+            return await sock.sendMessage(chatId, {
+                text: "Usage: .song <song name or YouTube link>"
             }, { quoted: message });
         }
 
-        // Search if not a YouTube link
-        let track;
-        if (YTDownloader.isYTUrl(query)) {
-            track = { url: query };
-        } else {
-            const results = await YTDownloader.searchTrack(query);
-            if (!results.length) return sock.sendMessage(chatId, { text: 'No results found.' }, { quoted: message });
-            track = results[0];
+        let videoUrl = query;
+
+        // If not link → search
+        if (!query.includes("youtube.com") && !query.includes("youtu.be")) {
+            const search = await yts(query);
+            if (!search.videos.length) {
+                return await sock.sendMessage(chatId, {
+                    text: "❌ No results found."
+                }, { quoted: message });
+            }
+            videoUrl = search.videos[0].url;
         }
 
-        await sock.sendMessage(chatId, { text: `🎵 Downloading: *${track.title}*` }, { quoted: message });
-
-        // Download using ytdl2
-        const result = await YTDownloader.downloadMusic(track);
-
-        // Send audio
         await sock.sendMessage(chatId, {
-            audio: { url: result.path },
-            mimetype: 'audio/mpeg',
-            fileName: `${track.title}.mp3`,
-            caption: `🎵 *${track.title}*\n\n╭━━━〔 BUGFIXED SULEXH XMD 〕━━━⬣\n┃ 🚀 Unlimited Audio Downloader\n┃ ⚡ Powered by SULEXH TECH\n╰━━━━━━━━━━━━━━━━━━⬣`,
-            ptt: false
+            text: "🎵 Downloading audio..."
         }, { quoted: message });
 
-        fs.unlink(result.path, () => {}); // cleanup
+        // Direct MP3 API (raw file)
+        const api = `https://api.vevioz.com/api/mp3?url=${encodeURIComponent(videoUrl)}`;
+
+        const response = await axios.get(api, { responseType: "arraybuffer" });
+
+        await sock.sendMessage(chatId, {
+            audio: Buffer.from(response.data),
+            mimetype: "audio/mpeg",
+            fileName: "song.mp3"
+        }, { quoted: message });
 
     } catch (err) {
-        console.error('[SONG ERROR]', err);
-        await sock.sendMessage(chatId, { text: '❌ Download failed.' }, { quoted: message });
+        console.error("[SONG ERROR]", err.message);
+        await sock.sendMessage(chatId, {
+            text: "❌ Failed to download audio."
+        }, { quoted: message });
     }
 }
 
