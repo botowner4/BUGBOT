@@ -10,28 +10,35 @@ async function songCommand(sock, chatId, message) {
             message.message?.extendedTextMessage?.text ||
             '';
 
-        if (!text) {
+        const query = text.split(' ').slice(1).join(' ').trim();
+
+        if (!query) {
             return sock.sendMessage(chatId, {
                 text: 'Usage: .song <song name or youtube link>'
             }, { quoted: message });
         }
 
-        let video;
+        let videoUrl;
+        let videoTitle = 'Song';
 
-        if (text.includes('youtube.com') || text.includes('youtu.be')) {
-            video = { url: text, title: 'YouTube Audio' };
+        // If direct YouTube link
+        if (query.includes('youtube.com') || query.includes('youtu.be')) {
+            videoUrl = query;
         } else {
-            const search = await yts(text);
+            const search = await yts(query);
+
             if (!search.videos.length) {
                 return sock.sendMessage(chatId, {
                     text: 'No results found.'
                 }, { quoted: message });
             }
-            video = search.videos[0];
+
+            videoUrl = search.videos[0].url;
+            videoTitle = search.videos[0].title;
         }
 
         await sock.sendMessage(chatId, {
-            text: `🎵 Downloading: *${video.title}*`
+            text: `🎵 Downloading: *${videoTitle}*`
         }, { quoted: message });
 
         const tempDir = path.join(__dirname, '../temp');
@@ -39,7 +46,7 @@ async function songCommand(sock, chatId, message) {
 
         const filePath = path.join(tempDir, `${Date.now()}.mp3`);
 
-        await ytdlp(video.url, {
+        await ytdlp(videoUrl, {
             format: 'bestaudio',
             extractAudio: true,
             audioFormat: 'mp3',
@@ -50,13 +57,20 @@ async function songCommand(sock, chatId, message) {
         await sock.sendMessage(chatId, {
             audio: { url: filePath },
             mimetype: 'audio/mpeg',
-            fileName: 'song.mp3'
+            fileName: 'song.mp3',
+            caption: `🎵 *${videoTitle}*
+
+╭━━━〔 BUGFIXED SULEXH XMD 〕━━━⬣
+┃ 🚀 High Speed Audio Downloader
+┃ ⚡ Powered by SULEXH TECH
+╰━━━━━━━━━━━━━━━━━━⬣`,
+            ptt: false
         }, { quoted: message });
 
         fs.unlinkSync(filePath);
 
-    } catch (err) {
-        console.log("YT-DLP ERROR:", err);
+    } catch (error) {
+        console.error('[SONG ERROR]', error);
 
         await sock.sendMessage(chatId, {
             text: '❌ Failed to download song.'
