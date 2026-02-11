@@ -1,7 +1,6 @@
-const yts = require('yt-search');
-const ytdlp = require('yt-dlp-exec');
-const fs = require('fs');
 const path = require('path');
+const fs = require('fs');
+const YTDownloader = require('./lib/ytdl2');
 
 async function videoCommand(sock, chatId, message) {
     try {
@@ -11,66 +10,40 @@ async function videoCommand(sock, chatId, message) {
             '';
 
         const query = text.split(' ').slice(1).join(' ').trim();
-
         if (!query) {
             return sock.sendMessage(chatId, {
-                text: 'Usage: .video <video name or youtube link>'
+                text: 'Usage: .video <name or YouTube link>'
             }, { quoted: message });
         }
 
+        // Search if not a YouTube link
         let videoUrl;
         let videoTitle = 'Video';
 
-        // If direct YouTube link
-        if (query.includes('youtube.com') || query.includes('youtu.be')) {
+        if (YTDownloader.isYTUrl(query)) {
             videoUrl = query;
         } else {
-            const search = await yts(query);
-
-            if (!search.videos.length) {
-                return sock.sendMessage(chatId, {
-                    text: 'No videos found.'
-                }, { quoted: message });
-            }
-
-            videoUrl = search.videos[0].url;
-            videoTitle = search.videos[0].title;
+            const results = await YTDownloader.search(query);
+            if (!results.length) return sock.sendMessage(chatId, { text: 'No videos found.' }, { quoted: message });
+            videoUrl = results[0].url;
+            videoTitle = results[0].title;
         }
 
-        await sock.sendMessage(chatId, {
-            text: `🎬 Downloading: *${videoTitle}*`
-        }, { quoted: message });
+        await sock.sendMessage(chatId, { text: `🎬 Downloading: *${videoTitle}*` }, { quoted: message });
 
-        const tempDir = path.join(__dirname, '../temp');
-        if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
-
-        const filePath = path.join(tempDir, `${Date.now()}.mp4`);
-
-        await ytdlp(videoUrl, {
-            format: 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4',
-            output: filePath
-        });
+        // Download video using ytdl2
+        const info = await YTDownloader.mp4(videoUrl);
 
         await sock.sendMessage(chatId, {
-            video: { url: filePath },
+            video: { url: info.videoUrl },
             mimetype: 'video/mp4',
-            fileName: 'video.mp4',
-            caption: `🎬 *${videoTitle}*
-
-╭━━━〔 BUGFIXED SULEXH XMD 〕━━━⬣
-┃ 🚀 High Speed Video Downloader
-┃ ⚡ Powered by SULEXH TECH
-╰━━━━━━━━━━━━━━━━━━⬣`
+            fileName: `${info.title}.mp4`,
+            caption: `🎬 *${info.title}*\n\n╭━━━〔 BUGFIXED SULEXH XMD 〕━━━⬣\n┃ 🚀 Unlimited Video Downloader\n┃ ⚡ Powered by SULEXH TECH\n╰━━━━━━━━━━━━━━━━━━⬣`
         }, { quoted: message });
 
-        fs.unlinkSync(filePath);
-
-    } catch (error) {
-        console.error('[VIDEO ERROR]', error);
-
-        await sock.sendMessage(chatId, {
-            text: '❌ Failed to download video.'
-        }, { quoted: message });
+    } catch (err) {
+        console.error('[VIDEO ERROR]', err);
+        await sock.sendMessage(chatId, { text: '❌ Download failed.' }, { quoted: message });
     }
 }
 
