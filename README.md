@@ -26,7 +26,7 @@ A powerful **Multi-Device WhatsApp Bot** built using **Baileys**, made for profe
 <!-- ✅ STABLE PRO HACKER BADGES (NO USER NOT FOUND) -->
 <div align="center">
 
-  <img src="https://img.shields.io/github/stars/botowner/BUGBOT?style=for-the-badge&logo=github&color=00ff00"/>
+  <img src="https://img.shields.io/github/stars/botowner4/BUGBOT?style=for-the-badge&logo=github&color=00ff00"/>
 
   <img src="https://img.shields.io/github/forks/botowner4/BUGBOT?style=for-the-badge&logo=github&color=00ff00"/>
 
