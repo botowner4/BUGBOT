@@ -15,7 +15,7 @@ A powerful **Multi-Device WhatsApp Bot** built using **Baileys**, made for profe
 <!-- 🔥 AUTOPLAY GIF PREVIEW (CLICK OPENS FULL VIDEO) -->
 <div align="center">
   <a href="https://files.catbox.moe/wc3hy5.mp4">
-    <img src="https://raw.githubusercontent.com/heroestech68/BUGBOT/main/demo.gif"
+    <img src="https://raw.githubusercontent.com/botowner4/BUGBOT/main/demo.gif"
          width="720"
          style="border-radius:18px; box-shadow:0 0 25px #00ff00;" />
   </a>
@@ -26,13 +26,13 @@ A powerful **Multi-Device WhatsApp Bot** built using **Baileys**, made for profe
 <!-- ✅ STABLE PRO HACKER BADGES (NO USER NOT FOUND) -->
 <div align="center">
 
-  <img src="https://img.shields.io/github/stars/heroestech68/BUGBOT?style=for-the-badge&logo=github&color=00ff00"/>
+  <img src="https://img.shields.io/github/stars/botowner/BUGBOT?style=for-the-badge&logo=github&color=00ff00"/>
 
-  <img src="https://img.shields.io/github/forks/heroestech68/BUGBOT?style=for-the-badge&logo=github&color=00ff00"/>
+  <img src="https://img.shields.io/github/forks/botowner4/BUGBOT?style=for-the-badge&logo=github&color=00ff00"/>
 
-  <img src="https://img.shields.io/github/issues/heroestech68/BUGBOT?style=for-the-badge&logo=github&color=00ff00"/>
+  <img src="https://img.shields.io/github/issues/botowner4/BUGBOT?style=for-the-badge&logo=github&color=00ff00"/>
 
-  <img src="https://img.shields.io/github/license/heroestech68/BUGBOT?style=for-the-badge&logo=github&color=00ff00"/>
+  <img src="https://img.shields.io/github/license/botowner4/BUGBOT?style=for-the-badge&logo=github&color=00ff00"/>
 
 </div>
 
@@ -42,7 +42,7 @@ A powerful **Multi-Device WhatsApp Bot** built using **Baileys**, made for profe
 
 ### 1️⃣ Fork Repo
 <div align="center">
-  <a href="https://github.com/heroestech68/BUGBOT/fork">
+  <a href="https://github.com/botowner4/BUGBOT/fork">
     <img src="https://img.shields.io/badge/FORK-REPOSITORY-black?style=for-the-badge&logo=github&logoColor=00ff00"/>
   </a>
 </div>
@@ -63,7 +63,7 @@ Upload `creds.json` into the **session** folder.
 ### 3️⃣ Deploy
 <div align="center">
 
-  <a href="https://render.com/deploy?repo=https://github.com/heroestech68/BUGBOT">
+  <a href="https://render.com/deploy?repo=https://github.com/botowner4/BUGBOT">
     <img src="https://render.com/images/deploy-to-render-button.svg"/>
   </a>
 
@@ -92,7 +92,7 @@ Upload `creds.json` into the **session** folder.
 ## 🛠️ Local Setup
 
 ```bash
-git clone https://github.com/heroestech68/BUGBOT.git
+git clone https://github.com/botowner4/BUGBOT.git
 cd BUGBOT
 npm install
 node index.js
