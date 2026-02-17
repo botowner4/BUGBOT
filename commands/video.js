@@ -1,64 +1,83 @@
-const axios = require("axios");
+/**
+ * 🌐📀 Video Music Downloader Bot
+ * Version: 1.0
+ * Author: BUGFIXED-SULEXH
+ * Platform-ready: Works on Android Termux, Katabump, VPS, Windows, Linux
+ * Description: Search YouTube or provide a URL, download audio as MP3.
+ */
+
+const fs = require("fs");
+const path = require("path");
+const { randomBytes } = require("crypto");
 const yts = require("youtube-yts");
+const { ytDlp } = require("yt-dlp-exec"); // Node.js-friendly yt-dlp
 
-async function videoCommand(sock, chatId, message) {
-    try {
-        const text =
-            message.message?.conversation ||
-            message.message?.extendedTextMessage?.text ||
-            "";
+// ==========================
+// 🔎 YouTube URL Validation
+// ==========================
+const ytIdRegex =
+  /(?:youtube\.com\/\S*(?:(?:\/e(?:mbed))?\/|watch\?(?:\S*?&?v\=))|youtu\.be\/)([a-zA-Z0-9_-]{6,11})/;
 
-        const args = text.trim().split(/\s+/);
-        args.shift();
-        const query = args.join(" ").trim();
+// ==========================
+// 🎵 YTDownloader Class
+// ==========================
+class YTDownloader {
+  static isYTUrl(url) {
+    return ytIdRegex.test(url);
+  }
 
-        if (!query) {
-            return await sock.sendMessage(chatId, {
-                text: "Usage: .video <video name or YouTube link>"
-            }, { quoted: message });
-        }
+  // 🔍 Search YouTube for a query string
+  static async search(query) {
+    const result = await yts(query);
+    return result.videos || [];
+  }
 
-        let videoUrl = query;
+  // 🎶 Download audio from YouTube
+  static async downloadMusic(query) {
+    let videoUrl;
 
-        // If not link → search automatically
-        if (!query.includes("youtube.com") && !query.includes("youtu.be")) {
-            const search = await yts(query);
-
-            if (!search.videos.length) {
-                return await sock.sendMessage(chatId, {
-                    text: "❌ No videos found."
-                }, { quoted: message });
-            }
-
-            videoUrl = search.videos[0].url;
-        }
-
-        await sock.sendMessage(chatId, {
-            text: "🎬 Downloading video..."
-        }, { quoted: message });
-
-        // Direct MP4 API (raw file)
-        const api = `https://api.vevioz.com/api/mp4?url=${encodeURIComponent(videoUrl)}`;
-
-        const response = await axios.get(api, {
-            responseType: "arraybuffer",
-            timeout: 60000
-        });
-
-        await sock.sendMessage(chatId, {
-            video: Buffer.from(response.data),
-            mimetype: "video/mp4",
-            fileName: "video.mp4",
-            caption: "🎬 Here is your video"
-        }, { quoted: message });
-
-    } catch (err) {
-        console.error("[VIDEO ERROR]", err.message);
-
-        await sock.sendMessage(chatId, {
-            text: "❌ Failed to download video."
-        }, { quoted: message });
+    if (this.isYTUrl(query)) {
+      videoUrl = query;
+    } else {
+      const results = await this.search(query);
+      if (!results.length) throw new Error("❌ No results found for query: " + query);
+      videoUrl = results[0].url;
     }
+
+    // Create temp folder if missing
+    const tempFolder = path.join(__dirname, "temp");
+    if (!fs.existsSync(tempFolder)) fs.mkdirSync(tempFolder, { recursive: true });
+
+    const fileName = randomBytes(4).toString("hex") + ".mp3";
+    const outputPath = path.join(tempFolder, fileName);
+
+    console.log(`🎬 Downloading: ${videoUrl}`);
+    console.log(`💾 Saving to: ${outputPath}`);
+
+    // Use yt-dlp-exec to download
+    await ytDlp(videoUrl, {
+      extractAudio: true,
+      audioFormat: "mp3",
+      output: outputPath
+    });
+
+    console.log("✅ Download complete!");
+    return { path: outputPath };
+  }
 }
 
-module.exports = videoCommand;
+// ==========================
+// 🚀 Example Usage
+// ==========================
+(async () => {
+  try {
+    console.log("🌐 Starting Video Music Downloader Bot...");
+
+    const query = "Rick Astley Never Gonna Give You Up"; // Replace with user input or variable
+    const result = await YTDownloader.downloadMusic(query);
+
+    console.log(`🎵 MP3 File Path: ${result.path}`);
+  } catch (err) {
+    console.error("❌ Error:", err.message);
+  }
+})();
