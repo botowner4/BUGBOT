@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BUGFIXED SULEXH XMD - WhatsApp Bot Pairing</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/png" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75'>🤖</text></svg>">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo-section">
+                <div class="emoji">🤖</div>
+                <h1>BUGFIXED SULEXH XMD</h1>
+                <p class="subtitle">WhatsApp Multi-Device Bot</p>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <!-- Info Section -->
+            <div class="info-section">
+                <h2>🚀 Quick Start Guide</h2>
+                <ol class="steps">
+                    <li><strong>Enter Your WhatsApp Number</strong> - Use international format (e.g., 254768161116)</li>
+                    <li><strong>Get Pairing Code</strong> - Click the button below to receive a 6-digit code</li>
+                    <li><strong>Link in WhatsApp</strong> - Open WhatsApp → Settings → Linked Devices → Link a Device</li>
+                    <li><strong>Deploy Bot</strong> - Upload credentials and deploy to Render/Heroku</li>
+                </ol>
+            </div>
+
+            <!-- Pairing Section -->
+            <div class="pairing-section">
+                <div class="card">
+                    <h2>📱 Get Your Pairing Code</h2>
+                    
+                    <!-- Phone Input -->
+                    <div class="input-group">
+                        <label for="phoneNumber">WhatsApp Number</label>
+                        <div class="phone-input-wrapper">
+                            <span class="prefix">+</span>
+                            <input 
+                                type="tel" 
+                                id="phoneNumber" 
+                                placeholder="254768161116"
+                                inputmode="numeric"
+                            >
+                        </div>
+                        <small>Format: Country code + number (no + or spaces)</small>
+                    </div>
+
+                    <!-- Get Code Button -->
+                    <button id="getCodeBtn" class="btn btn-primary">
+                        <span class="btn-text">Get Pairing Code</span>
+                        <span class="spinner" style="display: none;">⏳</span>
+                    </button>
+
+                    <!-- Status Messages -->
+                    <div id="statusMsg" class="status-msg" style="display: none;"></div>
+
+                    <!-- Code Display -->
+                    <div id="codeDisplay" class="code-display" style="display: none;">
+                        <h3>✅ Your Pairing Code</h3>
+                        <div class="code-box">
+                            <div class="code-value" id="codeValue">XXXX-XXXX</div>
+                            <button id="copyBtn" class="btn btn-secondary btn-sm">Copy Code</button>
+                        </div>
+                        <div class="code-expiry">
+                            <small>⏰ Expires in: <span id="expireTimer">10:00</span></small>
+                        </div>
+                        <div class="instructions">
+                            <h4>📲 Next Steps:</h4>
+                            <ol>
+                                <li>Open <strong>WhatsApp</strong> on your phone</li>
+                                <li>Go to <strong>Settings → Linked Devices</strong></li>
+                                <li>Tap <strong>"Link a Device"</strong></li>
+                                <li>Select <strong>"Link with Phone Number"</strong></li>
+                                <li>Enter the code above when prompted</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <!-- Credentials Display -->
+                    <div id="credentialsDisplay" class="credentials-display" style="display: none;">
+                        <h3>✅ Bot Successfully Connected!</h3>
+                        <p>Your session credentials are ready.</p>
+                        <button id="downloadCredsBtn" class="btn btn-success">
+                            📥 Download Credentials
+                        </button>
+                        <div class="next-steps">
+                            <h4>🚀 Deploy Instructions:</h4>
+                            <ol>
+                                <li>Extract the downloaded credentials.json file</li>
+                                <li>Fork the bot repository on GitHub</li>
+                                <li>Deploy to <a href="https://render.com" target="_blank">Render</a> or <a href="https://heroku.com" target="_blank">Heroku</a></li>
+                                <li>Upload credentials during deployment setup</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Links Section -->
+            <div class="links-section">
+                <h3>📚 Resources</h3>
+                <div class="links-grid">
+                    <a href="https://youtube.com/@mentorsulexhtech" target="_blank" class="link-card">
+                        <span class="icon">▶️</span>
+                        <span>YouTube Channel</span>
+                    </a>
+                    <a href="https://github.com/heroestech68/BUGBOT" target="_blank" class="link-card">
+                        <span class="icon">🐙</span>
+                        <span>GitHub Repo</span>
+                    </a>
+                    <a href="https://wa.me/254768161116" target="_blank" class="link-card">
+                        <span class="icon">💬</span>
+                        <span>WhatsApp Support</span>
+                    </a>
+                    <a href="https://chat.whatsapp.com/GyZBMUtrw9LIlV6htLvkCK" target="_blank" class="link-card">
+                        <span class="icon">👥</span>
+                        <span>Join Group</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Made with 💚 by <strong>BUGFIXED SULEXH TECH</strong></p>
+            <p><small>© 2024 | Powered by Baileys</small></p>
+        </footer>
+    </div>
+
+    <script src="js/client.js"></script>
+</body>
+              </html>
