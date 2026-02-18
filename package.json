@@ -21,6 +21,7 @@
     "pino": "^8.17.0",
     "libphonenumber-js": "^1.10.57",
   "yt-search": "^2.10.4",
-    "moment-timezone": "^0.5.45"
+    "moment-timezone": "^0.5.45",
+    "humanize-duration": "^4.4.0"
   }
 }
