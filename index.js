@@ -35,17 +35,23 @@ const { parsePhoneNumber } = require("libphonenumber-js");
 const { PHONENUMBER_MCC } = require('@whiskeysockets/baileys/lib/Utils/generics');
 const { rmSync, existsSync } = require('fs');
 const { join } = require('path');
-const express = require("express");
-const app = express();
+const express = require('express');
+const path = require('path');
 
+const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.get("/", (req, res) => {
-    res.send("BUGFIXED XMD Pairing Server Running ✅");
+// Serve static files from "public" folder
+app.use(express.static(path.join(__dirname, 'public')));
+
+// If user visits root, serve index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Start server
 app.listen(PORT, () => {
-    console.log(`🌍 Server running on port ${PORT}`);
+    console.log('BUGFIXED XMD Pairing Server Running ✅');
 });
 
 // Initialize store
