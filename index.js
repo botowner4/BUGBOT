@@ -35,9 +35,6 @@ const { parsePhoneNumber } = require("libphonenumber-js");
 const { PHONENUMBER_MCC } = require('@whiskeysockets/baileys/lib/Utils/generics');
 const { rmSync, existsSync } = require('fs');
 const { join } = require('path');
-const express = require('express');
-const path = require('path');
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
