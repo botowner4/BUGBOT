@@ -35,6 +35,18 @@ const { parsePhoneNumber } = require("libphonenumber-js");
 const { PHONENUMBER_MCC } = require('@whiskeysockets/baileys/lib/Utils/generics');
 const { rmSync, existsSync } = require('fs');
 const { join } = require('path');
+const express = require("express");
+const app = express();
+
+const PORT = process.env.PORT || 3000;
+
+app.get("/", (req, res) => {
+    res.send("BUGFIXED XMD Pairing Server Running ✅");
+});
+
+app.listen(PORT, () => {
+    console.log(`🌍 Server running on port ${PORT}`);
+});
 
 // Initialize store
 store.readFromFile();
