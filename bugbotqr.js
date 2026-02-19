@@ -1,4 +1,4 @@
-const PastebinAPI = require('pastebin-js'),
+Techt PastebinAPI = require('pastebin-js'),
 pastebin = new PastebinAPI('EMWTMkQAVfJa9kM-MRUrxd5Oku1U7pgL')
 const {makeid} = require('./id');
 const QRCode = require('qrcode');
@@ -28,13 +28,13 @@ const {
 } = require("node:fs/promises")
 router.get('/', async (req, res) => {
 	const id = makeid();
-	async function WASI_QR_CODE() {
+	async function WASI_MD_QR_CODE() {
 		const {
 			state,
 			saveCreds
 		} = await useMultiFileAuthState('./temp/' + id)
 		try {
-			let Qr_Code_By_Wasi_Tech = Bugfixed_Tech({
+			let Qr_Code_By_Wasi_Tech = Wasi_Tech({
 				auth: state,
 				printQRInTerminal: false,
 				logger: pino({
@@ -63,7 +63,7 @@ router.get('/', async (req, res) => {
 *_Made With 🤍_*
 ______________________________________
 ╔════◇
-║ *『AMAZING YOU'VE CHOSEN BUGBOT』*
+║ *『AMAZING YOU'VE CHOSEN BUGBOT MD』*
 ║ _You Have Completed the First Step to Deploy a Whatsapp Bot._
 ╚════════════════════════╝
 ╔═════◇
@@ -78,7 +78,7 @@ ______________________________________
 _____________________________________
 	
 _Don't Forget To Give Star To My Repo_`
-	 await Qr_Code_By_Bugfixed_Tech.sendMessage(Qr_Code_By_Bugfixed_Tech.user.id,{text:BUGBOT_TEXT},{quoted:session})
+	 await Qr_Code_By_Wasi_Tech.sendMessage(Qr_Code_By_Wasi_Tech.user.id,{text:WASI_MD_TEXT},{quoted:session})
 
 
 
@@ -100,6 +100,6 @@ _Don't Forget To Give Star To My Repo_`
 			await removeFile("temp/" + id);
 		}
 	}
-	return await BUGBOT_QR_CODE()
+	return await WASI_MD_QR_CODE()
 });
 module.exports = router
