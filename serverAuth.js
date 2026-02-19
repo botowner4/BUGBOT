@@ -42,7 +42,7 @@ async function generateSession() {
             },
             printQRInTerminal: true, // Optional: shows QR in terminal
             logger: pino({ level: 'fatal' }),
-            browser: Browsers.chrome('Desktop'),
+            browser: ["Chrome", "Desktop", "1.0"]
         });
 
         bot.ev.on('creds.update', saveCreds);
