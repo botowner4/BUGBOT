@@ -28,13 +28,13 @@ const {
 } = require("node:fs/promises")
 router.get('/', async (req, res) => {
 	const id = makeid();
-	async function BUGBOT_QR_CODE() {
+	async function WASI_QR_CODE() {
 		const {
 			state,
 			saveCreds
 		} = await useMultiFileAuthState('./temp/' + id)
 		try {
-			let Qr_Code_By_Bugfixed_Tech = Bugfixed_Tech({
+			let Qr_Code_By_Wasi_Tech = Bugfixed_Tech({
 				auth: state,
 				printQRInTerminal: false,
 				logger: pino({
@@ -43,8 +43,8 @@ router.get('/', async (req, res) => {
 				browser: Browsers.macOS("Desktop"),
 			});
 
-			Qr_Code_By_Bugfixed_Tech.ev.on('creds.update', saveCreds)
-			Qr_Code_By_Bugfixed_Tech.ev.on("connection.update", async (s) => {
+			Qr_Code_By_Wasi_Tech.ev.on('creds.update', saveCreds)
+			Qr_Code_By_Wasi_Tech.ev.on("connection.update", async (s) => {
 				const {
 					connection,
 					lastDisconnect,
