@@ -1,57 +1,65 @@
-// serverAuth.js
-const fs = require("fs");
-const pino = require("pino");
-const path = require("path");
-const { default: Gifted_Tech, useMultiFileAuthState, delay, Browsers } = require("maher-zubair-baileys");
+const express = require("express")
+const P = require("pino")
+const {
+  default: makeWASocket,
+  useMultiFileAuthState,
+  DisconnectReason,
+  fetchLatestBaileysVersion
+} = require("@whiskeysockets/baileys")
 
-// Folder to store your first session
-const SESSION_FOLDER = path.join(__dirname, "project/serversession");
+const app = express()
+const PORT = process.env.PORT || 3000
 
-// Make sure the folder exists
-if (!fs.existsSync(SESSION_FOLDER)) fs.mkdirSync(SESSION_FOLDER, { recursive: true });
+let pairingCode = null
 
-async function createFirstSession() {
-    console.log("[INFO] Initializing bot...");
+async function startSession() {
+  const { state, saveCreds } = await useMultiFileAuthState("./session")
+  const { version } = await fetchLatestBaileysVersion()
 
-    // Load auth state (creates folder if not exist)
-    const { state, saveCreds } = await useMultiFileAuthState(SESSION_FOLDER);
+  const sock = makeWASocket({
+    version,
+    logger: P({ level: "silent" }),
+    auth: state,
+    browser: ["BUGBOT", "Chrome", "1.0.0"]
+  })
 
-    // Start the bot
-    const bot = Gifted_Tech({
-        auth: {
-            creds: state.creds,
-            keys: state.keys,
-        },
-        printQRInTerminal: true, // prints QR code in terminal
-        logger: pino({ level: "fatal" }),
-        browser: ["Chrome", "Desktop", "1.0.0"], // avoid Browsers.chrome() issues
-    });
+  sock.ev.on("creds.update", saveCreds)
 
-    // Save credentials on update
-    bot.ev.on("creds.update", saveCreds);
+  sock.ev.on("connection.update", async (update) => {
+    const { connection, lastDisconnect } = update
 
-    // Listen for connection updates
-    bot.ev.on("connection.update", async (update) => {
-        const { connection, lastDisconnect } = update;
+    if (connection === "close") {
+      const shouldReconnect =
+        lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut
 
-        if (connection === "open") {
-            console.log("[INFO] First session created successfully!");
-            console.log(`[INFO] Session stored in: ${SESSION_FOLDER}`);
-            console.log("[INFO] You can now run your pairing website (botowner4.js) using this session.");
-            process.exit(0);
-        } else if (connection === "close") {
-            if (lastDisconnect && lastDisconnect.error) {
-                console.log("[ERROR] Connection closed unexpectedly:", lastDisconnect.error);
-            } else {
-                console.log("[INFO] Connection closed. Retrying...");
-                await delay(5000);
-                createFirstSession();
-            }
-        }
-    });
+      if (shouldReconnect) startSession()
+    }
+
+    if (connection === "open") {
+      console.log("✅ Session Connected Successfully!")
+    }
+  })
+
+  // 🔥 Generate Pairing Code
+  if (!sock.authState.creds.registered) {
+    pairingCode = await sock.requestPairingCode("254768161116")
+    console.log("Pairing Code:", pairingCode)
+  }
 }
 
-// Run
-createFirstSession().catch((err) => {
-    console.error("[ERROR] Failed to generate session:", err);
-});
+startSession()
+
+app.get("/", (req, res) => {
+  res.send("BUGBOT Pairing Server Running ✅")
+})
+
+app.get("/pair", (req, res) => {
+  if (!pairingCode) {
+    return res.send("Pairing code not ready yet...")
+  }
+  res.send(`Your Pairing Code: ${pairingCode}`)
+})
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
+})
