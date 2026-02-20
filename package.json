@@ -1,26 +1,26 @@
 {
-    "description": "bugbotsession",
-    "main": "./botowner4.js",
-  "engines" : { 
-    "npm" : ">=9.7.2",
-    "node" : ">=20.0.0"
-    },
-    "scripts": {
-    "start": "node botowner4.js",
-    "auth": "node serverAuth.js"
-    },
+  "name": "bugbotsession",
+  "version": "1.0.0",
+  "description": "BUGBOT pairing and session server",
+  "main": "serverAuth.js",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=9.7.2"
+  },
+  "scripts": {
+    "start": "node serverAuth.js"
+  },
   "author": "BugfixedTech",
-  "license": "GPL-3.0 license",
+  "license": "GPL-3.0",
   "dependencies": {
     "@whiskeysockets/baileys": "^6.5.0",
     "maher-zubair-baileys": "^6.6.5",
     "qrcode": "^1.5.3",
-    "awesome-phonenumber": "^2.64.0",
     "pino": "^8.1.0",
-    "phone" : "3.1.30",
     "body-parser": "^1.20.1",
     "pastebin-js": "^1.0.6",
     "express": "^4.18.1",
-    "path": "^0.12.7"
-   }
+    "awesome-phonenumber": "^2.64.0",
+    "phone": "^3.1.30"
+  }
 }
