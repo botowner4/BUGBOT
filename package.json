@@ -6,8 +6,8 @@
     "node" : ">=20.0.0"
     },
     "scripts": {
-    "start": "node botowner4.js"
-     "start": "node serverAuth.js"
+    "start": "node botowner4.js",
+    "start": "node serverAuth.js"
     },
   "author": "BugfixedTech",
   "license": "GPL-3.0 license",
