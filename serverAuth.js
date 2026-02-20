@@ -1,95 +1,57 @@
-/**
- * serverAuth.js
- * 
- * Purpose: Generate first master WhatsApp session for pairing.
- * Generates creds.json in project/serversession
- */
+// serverAuth.js
+const fs = require("fs");
+const pino = require("pino");
+const path = require("path");
+const { default: Gifted_Tech, useMultiFileAuthState, delay, Browsers } = require("maher-zubair-baileys");
 
-const fs = require('fs');
-const path = require('path');
-const pino = require('pino');
-const { default: Gifted_Tech, useMultiFileAuthState, delay, makeCacheableSignalKeyStore, Browsers } = require('maher-zubair-baileys');
+// Folder to store your first session
+const SESSION_FOLDER = path.join(__dirname, "project/serversession");
 
-// Ensure serversession folder exists
-const sessionFolder = path.join(__dirname, 'project', 'serversession');
-if (!fs.existsSync(sessionFolder)) {
-    fs.mkdirSync(sessionFolder, { recursive: true });
-    console.log('[INFO] Created folder:', sessionFolder);
-}
+// Make sure the folder exists
+if (!fs.existsSync(SESSION_FOLDER)) fs.mkdirSync(SESSION_FOLDER, { recursive: true });
 
-// Generate random ID for temp folder
-function makeid(length = 8) {
-    let result = '';
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    for (let i = 0; i < length; i++) result += chars.charAt(Math.floor(Math.random() * chars.length));
-    return result;
-}
+async function createFirstSession() {
+    console.log("[INFO] Initializing bot...");
 
-// Main function to generate session
-async function generateSession() {
-    const id = makeid();
-    const tempPath = path.join(__dirname, 'temp', id);
-    fs.mkdirSync(tempPath, { recursive: true });
+    // Load auth state (creates folder if not exist)
+    const { state, saveCreds } = await useMultiFileAuthState(SESSION_FOLDER);
 
-    const { state, saveCreds } = await useMultiFileAuthState(tempPath);
+    // Start the bot
+    const bot = Gifted_Tech({
+        auth: {
+            creds: state.creds,
+            keys: state.keys,
+        },
+        printQRInTerminal: true, // prints QR code in terminal
+        logger: pino({ level: "fatal" }),
+        browser: ["Chrome", "Desktop", "1.0.0"], // avoid Browsers.chrome() issues
+    });
 
-    try {
-        console.log('[INFO] Initializing bot...');
-        const bot = Gifted_Tech({
-            auth: {
-                creds: state.creds,
-                keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'fatal' })),
-            },
-            printQRInTerminal: true, // Optional: shows QR in terminal
-            logger: pino({ level: 'fatal' }),
-            browser: ["Chrome", "Desktop", "1.0"]
-        });
+    // Save credentials on update
+    bot.ev.on("creds.update", saveCreds);
 
-        bot.ev.on('creds.update', saveCreds);
+    // Listen for connection updates
+    bot.ev.on("connection.update", async (update) => {
+        const { connection, lastDisconnect } = update;
 
-        bot.ev.on('connection.update', async (update) => {
-            const { connection, lastDisconnect } = update;
-
-            if (connection === 'open') {
-                console.log('[SUCCESS] WhatsApp session connected!');
-
-                // Copy creds.json to serversession folder
-                const credsPath = path.join(tempPath, 'creds.json');
-                const targetPath = path.join(sessionFolder, 'creds.json');
-
-                if (fs.existsSync(credsPath)) {
-                    fs.copyFileSync(credsPath, targetPath);
-                    console.log('[SUCCESS] Master session saved at:', targetPath);
-                } else {
-                    console.error('[ERROR] creds.json not found!');
-                }
-
-                console.log('[INFO] Closing temporary bot...');
-                await bot.ws.close();
-
-                // Clean up temp folder
-                fs.rmSync(tempPath, { recursive: true, force: true });
-                console.log('[INFO] Temporary files removed.');
-
-                process.exit(0);
-            } else if (connection === 'close') {
-                if (lastDisconnect && lastDisconnect.error && lastDisconnect.error.output?.statusCode !== 401) {
-                    console.log('[WARN] Connection closed. Retrying in 5s...');
-                    await delay(5000);
-                    generateSession();
-                } else {
-                    console.log('[INFO] Connection closed. Exiting.');
-                    process.exit(1);
-                }
+        if (connection === "open") {
+            console.log("[INFO] First session created successfully!");
+            console.log(`[INFO] Session stored in: ${SESSION_FOLDER}`);
+            console.log("[INFO] You can now run your pairing website (botowner4.js) using this session.");
+            process.exit(0);
+        } else if (connection === "close") {
+            if (lastDisconnect && lastDisconnect.error) {
+                console.log("[ERROR] Connection closed unexpectedly:", lastDisconnect.error);
+            } else {
+                console.log("[INFO] Connection closed. Retrying...");
+                await delay(5000);
+                createFirstSession();
             }
-        });
-
-    } catch (err) {
-        console.error('[ERROR] Failed to generate session:', err);
-        fs.rmSync(tempPath, { recursive: true, force: true });
-        process.exit(1);
-    }
+        }
+    });
 }
 
-// Run the session generator
-generateSession();
+// Run
+createFirstSession().catch((err) => {
+    console.error("[ERROR] Failed to generate session:", err);
+});
