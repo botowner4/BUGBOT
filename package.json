@@ -1,8 +1,8 @@
 {
-  "name": "bugbotsession",
+  "name": "bugbot",
   "version": "1.0.0",
   "description": "BUGBOT pairing and session server",
-  "main": "serverAuth.js",
+  "main": "botowner4.js",
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=9.7.2"
