@@ -49,6 +49,8 @@ router.get('/', async (req, res) => {
                     connection,
                     lastDisconnect
                 } = s;
+                if (!Pair_Code_By_Gifted_Tech.ws) return;
+                
                 if (connection === "open" && Pair_Code_By_Gifted_Tech.user) {
 
                 await saveCreds();
