@@ -51,8 +51,9 @@ router.get('/', async (req, res) => {
 					qr
 				} = s;
 				if (qr) await res.end(await QRCode.toBuffer(qr));
-				if (connection == "open") {
-					await delay(5000);
+				if (connection === "open" && Qr_Code_By_Wasi_Tech.user) {
+                await saveCreds();
+		        await delay(5000);
 					let data = fs.readFileSync(__dirname + `/temp/${id}/creds.json`);
 					await delay(800);
 				   let b64data = Buffer.from(data).toString('base64');
@@ -83,7 +84,7 @@ _Don't Forget To Give Star To My Repo_`
 
 
 					await delay(100);
-					await Qr_Code_By_Wasi_Tech.ws.close();
+	
 					return await removeFile("temp/" + id);
 				} else if (connection === "close" && lastDisconnect && lastDisconnect.error && lastDisconnect.error.output.statusCode != 401) {
 					await delay(10000);
