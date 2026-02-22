@@ -1,7 +1,9 @@
 const express = require('express');
-const app = express();
-__path = process.cwd()
 const bodyParser = require("body-parser");
+const app = express();
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+const __path = process.cwd()
 const PORT = process.env.PORT || 8000;
 let server = require('./bugbotqr.js'),
     code = require('./pair');
