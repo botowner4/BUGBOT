@@ -35,21 +35,24 @@ router.get('/', async (req, res) => {
                 logger: pino({level: "fatal"}).child({level: "fatal"}),
                 browser: ["Chrome (Linux)", "", ""]
              });
-             if(!Pair_Code_By_Gifted_Tech.authState.creds.registered) {
+              if(!Pair_Code_By_Gifted_Tech.authState.creds.registered) {
                 await delay(1500);
                         num = num.replace(/[^0-9]/g,'');
                             const code = await Pair_Code_By_Gifted_Tech.requestPairingCode(num)
                  if(!res.headersSent){
                  await res.send({code});
                      }
-                 }
-            Pair_Code_By_Gifted_Tech.ev.on('creds.update', saveCreds)
+              }
+         Pair_Code_By_Gifted_Tech.ev.on('creds.update', saveCreds)
             Pair_Code_By_Gifted_Tech.ev.on("connection.update", async (s) => {
                 const {
                     connection,
                     lastDisconnect
                 } = s;
-                if (connection == "open") {
+                if (connection === "open" && Pair_Code_By_Gifted_Tech.user) {
+
+                await saveCreds();
+
                 await delay(5000);
                 let data = fs.readFileSync(__dirname + `/temp/${id}/creds.json`);
                 await delay(800);
@@ -80,7 +83,7 @@ _Don't Forget To Give Star To My Repo_`
  
 
         await delay(100);
-        await Pair_Code_By_Gifted_Tech.ws.close();
+        
         return await removeFile('./temp/'+id);
             } else if (connection === "close" && lastDisconnect && lastDisconnect.error && lastDisconnect.error.output.statusCode != 401) {
                     await delay(10000);
