@@ -6,6 +6,7 @@ const fs = require('fs');
 const chalk = require('chalk');
 const FileType = require('file-type');
 const path = require('path');
+const __path = process.cwd();
 const axios = require('axios');
 const { handleMessages, handleGroupParticipantUpdate, handleStatus } = require('./main');
 const PhoneNumber = require('awesome-phonenumber');
