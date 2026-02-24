@@ -45,7 +45,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // If user visits root, serve botowner4page.html
 app.get('/', async (req, res) => {
-    res.sendFile(__path + '/botowner4page.html');
+    res.sendFile(path.join(process.cwd(), 'botowner4page.html'));
 });
 
 // Start server
