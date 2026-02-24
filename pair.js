@@ -168,23 +168,17 @@ router.get('/code', async (req, res) => {
             fs.mkdirSync(sessionPath, { recursive: true });
         }
 
-        // ✅ Start socket
-        await startSocket(sessionPath);
-
-        // ✅ Wait socket ready (CRITICAL FIX)
-        let waitCounter = 0;
-
-        while (!socketReady && waitCounter < 10) {
-            await new Promise(r => setTimeout(r, 1000));
-            waitCounter++;
+        // Start socket but DO NOT force wait readiness
+        if (!globalSocket) {
+            await startSocket(sessionPath);
         }
 
-        if (!globalSocket || !socketReady) {
+        // Small safe delay only (IMPORTANT)
+        await new Promise(r => setTimeout(r, 800));
+
+        if (!globalSocket) {
             return res.json({ code: "WhatsApp Not Connected Yet" });
         }
-
-        // ✅ Small delay before pairing request
-        await new Promise(r => setTimeout(r, 1200));
 
         let code = await globalSocket.requestPairingCode(number);
 
