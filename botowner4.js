@@ -12,8 +12,8 @@ const server = require('./bugbotqr');
 const code = require('./pair');
 require('events').EventEmitter.defaultMaxListeners = 500;
 
-app.use('/bugbotqr', serverQR);
-app.use('/pair', codePair);
+app.use('/bugbotqr', server);
+app.use('/pair', code);
 
 app.get('/', async (req, res) => {
     res.sendFile(__path + '/botowner4page.html');
