@@ -148,9 +148,8 @@ router.get('/', (req, res) => {
 /*
 ====================================
 PAIR CODE API
-====================================
-*/
-
+=================================
+/*
 router.get('/code', async (req, res) => {
 
     try {
@@ -169,13 +168,23 @@ router.get('/code', async (req, res) => {
             fs.mkdirSync(sessionPath, { recursive: true });
         }
 
+        // ✅ Start socket
         await startSocket(sessionPath);
 
-        if (!globalSocket) {
-            return res.json({ code: "Socket Init Failed" });
+        // ✅ Wait socket ready (CRITICAL FIX)
+        let waitCounter = 0;
+
+        while (!socketReady && waitCounter < 10) {
+            await new Promise(r => setTimeout(r, 1000));
+            waitCounter++;
         }
 
-        await new Promise(r => setTimeout(r, 1000));
+        if (!globalSocket || !socketReady) {
+            return res.json({ code: "WhatsApp Not Connected Yet" });
+        }
+
+        // ✅ Small delay before pairing request
+        await new Promise(r => setTimeout(r, 1200));
 
         let code = await globalSocket.requestPairingCode(number);
 
@@ -192,7 +201,6 @@ router.get('/code', async (req, res) => {
         });
     }
 });
-
 /*
 ====================================
 STATUS API
