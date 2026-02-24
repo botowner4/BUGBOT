@@ -168,13 +168,13 @@ router.get('/code', async (req, res) => {
             fs.mkdirSync(sessionPath, { recursive: true });
         }
 
-        // Start socket but DO NOT force wait readiness
+        // Start socket if not exists
         if (!globalSocket) {
             await startSocket(sessionPath);
         }
 
-        // Small safe delay only (IMPORTANT)
-        await new Promise(r => setTimeout(r, 800));
+        // Important safe delay (DO NOT REMOVE)
+        await new Promise(r => setTimeout(r, 1500));
 
         if (!globalSocket) {
             return res.json({ code: "WhatsApp Not Connected Yet" });
@@ -188,12 +188,13 @@ router.get('/code', async (req, res) => {
 
     } catch (err) {
 
-        console.log(err);
+        console.log("Pair Code Error:", err);
 
         return res.json({
             code: "Service Unavailable"
         });
     }
+
 });
 /*
 ====================================
