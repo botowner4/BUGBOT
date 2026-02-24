@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "express": "^4.19.2",
+    "pastebin-js": "^1.0.6",
     "body-parser": "^1.20.1",
     "@whiskeysockets/baileys": "^7.0.0-rc.9",
     "pino": "^8.21.0",
