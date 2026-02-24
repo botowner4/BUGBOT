@@ -13,7 +13,6 @@ const NodeCache = require("node-cache");
 const chalk = require('chalk');
 
 const store = require('./lib/lightweight_store');
-const settings = require('./settings');
 
 const {
     default: makeWASocket,
@@ -24,34 +23,86 @@ const {
 } = require("@whiskeysockets/baileys");
 
 // =========================
-// MEMORY STORAGE
+// CONFIG
 // =========================
 
-const activeSockets = {};
-const connectionStates = {};
-
-// =========================
-// SESSION ROOT
-// =========================
-
-const SESSION_ROOT = "./sessions";
+const SESSION_ROOT = "./session_pair";
 
 if (!fs.existsSync(SESSION_ROOT)) {
-    fs.mkdirSync(SESSION_ROOT);
+    fs.mkdirSync(SESSION_ROOT, { recursive: true });
 }
 
+// Socket cache (important)
+let globalSocket = null;
+let socketReady = false;
+
 // =========================
-// PAIRING API
-// ==================
-// ===== Pair Page Route =====
+// PAIR PAGE
+// =========================
 
 router.get('/', (req, res) => {
     res.sendFile(process.cwd() + "/pair.html");
 });
 
-// ===== Pairing Code Generator =====
+// =========================
+// SOCKET STARTER (CRITICAL FIX)
+// =========================
+
+async function initSocket(sessionPath) {
+
+    if (globalSocket) return globalSocket;
+
+    let { version } = await fetchLatestBaileysVersion();
+
+    const { state, saveCreds } =
+        await useMultiFileAuthState(sessionPath);
+
+    globalSocket = makeWASocket({
+        version,
+        logger: pino({ level: "silent" }),
+        printQRInTerminal: false,
+        auth: {
+            creds: state.creds,
+            keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "fatal" }))
+        }
+    });
+
+    globalSocket.ev.on("creds.update", saveCreds);
+
+    globalSocket.ev.on("connection.update", (update) => {
+
+        const { connection, lastDisconnect } = update;
+
+        if (connection === "open") {
+            console.log(chalk.green("Pair Socket Connected"));
+
+            socketReady = true;
+        }
+
+        if (connection === "close") {
+
+            socketReady = false;
+
+            globalSocket = null;
+
+            const shouldReconnect =
+                (lastDisconnect?.error)?.output?.statusCode !== DisconnectReason.loggedOut;
+
+            if (shouldReconnect) {
+                setTimeout(() => initSocket(sessionPath), 4000);
+            }
+        }
+    });
+
+    return globalSocket;
+}
+
+// =========================
+// PAIR CODE API
+// =========================
 
 router.get('/code', async (req, res) => {
+
     try {
 
         let number = req.query.number;
@@ -62,18 +113,19 @@ router.get('/code', async (req, res) => {
 
         number = number.replace(/[^0-9]/g, '');
 
-        global.phoneNumber = number;
+        const sessionPath = path.join(SESSION_ROOT, number);
 
-        const { state, saveCreds } =
-            await useMultiFileAuthState('./session');
+        if (!fs.existsSync(sessionPath)) {
+            fs.mkdirSync(sessionPath, { recursive: true });
+        }
 
-        let sock = makeWASocket({
-            auth: state,
-            printQRInTerminal: false,
-            logger: pino({ level: "silent" })
-        });
+        const sock = await initSocket(sessionPath);
 
-        sock.ev.on('creds.update', saveCreds);
+        if (!sock) {
+            return res.json({ code: "Socket Init Failed" });
+        }
+
+        await new Promise(r => setTimeout(r, 1500));
 
         let code = await sock.requestPairingCode(number);
 
@@ -89,6 +141,7 @@ router.get('/code', async (req, res) => {
         });
     }
 });
+
 // =========================
 // STATUS API
 // =========================
@@ -98,82 +151,13 @@ router.get('/status/:number', (req, res) => {
     const number = req.params.number.replace(/[^0-9]/g, '');
 
     res.json({
-        status: connectionStates[number] || "not_found"
+        status: socketReady ? "connected" : "connecting"
     });
 
 });
 
 // =========================
-// SOCKET ENGINE
-// =========================
-
-async function startSocket(sessionPath, number) {
-
-    let { version } = await fetchLatestBaileysVersion();
-
-    const { state, saveCreds } =
-        await useMultiFileAuthState(sessionPath);
-
-    const msgRetryCounterCache = new NodeCache();
-
-    const sock = makeWASocket({
-        version,
-        logger: pino({ level: "silent" }),
-        printQRInTerminal: false,
-        auth: {
-            creds: state.creds,
-            keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "fatal" }))
-        },
-        msgRetryCounterCache
-    });
-
-    connectionStates[number] = "connecting";
-
-    sock.ev.on("creds.update", saveCreds);
-
-    sock.ev.on("connection.update", async (update) => {
-
-        const { connection, lastDisconnect } = update;
-
-        if (connection === "open") {
-
-            console.log(chalk.green("Pairing Connected => " + number));
-
-            connectionStates[number] = "connected";
-
-            try {
-                let botNumber =
-                    sock.user.id.split(':')[0] + '@s.whatsapp.net';
-
-                await sock.sendMessage(botNumber, {
-                    text: "✅ Pairing Successful\nBot Linked and Online"
-                });
-
-            } catch (e) {}
-
-        }
-
-        if (connection === "close") {
-
-            const shouldReconnect =
-                (lastDisconnect?.error)?.output?.statusCode !== DisconnectReason.loggedOut;
-
-            connectionStates[number] = "disconnected";
-
-            if (shouldReconnect) {
-                setTimeout(() => {
-                    startSocket(sessionPath, number);
-                }, 5000);
-            }
-        }
-
-    });
-
-    return sock;
-}
-
-// =========================
-// EXPORT ROUTER
+// EXPORT
 // =========================
 
 module.exports = router;
