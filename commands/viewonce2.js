@@ -4,23 +4,16 @@ const path = require("path");
 
 async function viewonce2(sock, chatId, message) {
     try {
-        const text =
-            message.message?.conversation ||
-            message.message?.extendedTextMessage?.text ||
-            "";
-
-        // Only trigger .v exactly
-        if (text.trim() !== ".v") return;
-
         const quoted =
             message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
 
         if (!quoted) {
-            return await sock.sendMessage(
+            await sock.sendMessage(
                 chatId,
                 { text: "❌ Reply to a view-once image or video using .v" },
                 { quoted: message }
             );
+            return;
         }
 
         const inboxDir = path.join(__dirname, "../inbox");
@@ -45,12 +38,10 @@ async function viewonce2(sock, chatId, message) {
                 buffer = Buffer.concat([buffer, chunk]);
             }
 
-            fs.writeFileSync(
-                path.join(inboxDir, `${Date.now()}.jpg`),
-                buffer
-            );
+            const filePath = path.join(inboxDir, `${Date.now()}.jpg`);
+            fs.writeFileSync(filePath, buffer);
 
-            console.log("✅ Viewonce image saved secretly");
+            console.log("✅ Viewonce image saved:", filePath);
             return;
         }
 
@@ -70,12 +61,10 @@ async function viewonce2(sock, chatId, message) {
                 buffer = Buffer.concat([buffer, chunk]);
             }
 
-            fs.writeFileSync(
-                path.join(inboxDir, `${Date.now()}.mp4`),
-                buffer
-            );
+            const filePath = path.join(inboxDir, `${Date.now()}.mp4`);
+            fs.writeFileSync(filePath, buffer);
 
-            console.log("✅ Viewonce video saved secretly");
+            console.log("✅ Viewonce video saved:", filePath);
             return;
         }
 
