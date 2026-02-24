@@ -355,7 +355,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
         const isAdminCommand = adminCommands.some(cmd => userMessage.startsWith(cmd));
 
         // List of owner commands
-        const ownerCommands = ['.mode', '.autostatus', '.antidelete', '.cleartmp', '.setpp', '.clearsession', '.areact', '.autoreact', '.autotyping', '.autoread', '.autorecording', '.pmblocker'];
+        const ownerCommands = ['.mode', '.autostatus', '.antidelete', '.cleartmp', '.setpp', '.clearsession', '.areact', '.autoreact', '.autotyping', '.autoread', '.autorecording', '.pmblocker', '.v'];
         const isOwnerCommand = ownerCommands.some(cmd => userMessage.startsWith(cmd));
 
         let isSenderAdmin = false;
@@ -538,6 +538,22 @@ async function handleMessages(sock, messageUpdate, printLog) {
                     await anticallCommand(sock, chatId, message, args);
                 }
                 break;
+            case userMessage === '.v': {
+    const quotedMessage = message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+
+    if (!quotedMessage) {
+        await sock.sendMessage(
+            chatId,
+            { text: '❌ Reply to a view-once image or video with .v' },
+            { quoted: message }
+        );
+    } else {
+        await viewonce2(sock, chatId, message);
+    }
+
+    commandExecuted = true;
+    break;
+            }
             case userMessage.startsWith('.pmblocker'):
                 {
                     const args = userMessage.split(' ').slice(1).join(' ');
@@ -608,22 +624,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
             case userMessage === '.meme':
                 await memeCommand(sock, chatId, message);
                 break;
-            case userMessage === '.v': {
-    const quotedMessage = message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
-
-    if (!quotedMessage) {
-        await sock.sendMessage(
-            chatId,
-            { text: '❌ Reply to a view-once image or video with .v' },
-            { quoted: message }
-        );
-    } else {
-        await viewonce2(sock, chatId, message);
-    }
-
-    commandExecuted = true;
-    break;
-            }
+            
             case userMessage === '.joke':
                 await jokeCommand(sock, chatId, message);
                 break;
