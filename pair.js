@@ -42,45 +42,53 @@ if (!fs.existsSync(SESSION_ROOT)) {
 
 // =========================
 // PAIRING API
-// =========================
-router.get('/code', async (req, res) => {
+// ==================
+// ===== Pair Page Route =====
 
+router.get('/', (req, res) => {
+    res.sendFile(process.cwd() + "/pair.html");
+});
+
+// ===== Pairing Code Generator =====
+
+router.get('/code', async (req, res) => {
     try {
 
         let number = req.query.number;
 
-        if (!number)
+        if (!number) {
             return res.json({ code: "Number Required" });
+        }
 
         number = number.replace(/[^0-9]/g, '');
 
-        global.sessionId = number;
+        global.phoneNumber = number;
 
-        const sock = await startXeonBotInc();
+        const { state, saveCreds } =
+            await useMultiFileAuthState('./session');
 
-        if (!sock.authState?.creds?.registered) {
-
-            let code = await sock.requestPairingCode(number);
-
-            return res.json({
-                code: code?.match(/.{1,4}/g)?.join("-") || code
-            });
-        }
-
-        res.json({ code: "Already Connected" });
-
-    } catch (e) {
-
-        console.log(e);
-
-        res.json({
-            code: "Service Unavailable"
+        let sock = makeWASocket({
+            auth: state,
+            printQRInTerminal: false,
+            logger: pino({ level: "silent" })
         });
 
+        sock.ev.on('creds.update', saveCreds);
+
+        let code = await sock.requestPairingCode(number);
+
+        return res.json({
+            code: code?.match(/.{1,4}/g)?.join("-") || code
+        });
+
+    } catch (err) {
+        console.log(err);
+
+        return res.json({
+            code: "Service Unavailable"
+        });
     }
-
 });
-
 // =========================
 // STATUS API
 // =========================
