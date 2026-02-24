@@ -42,9 +42,9 @@ const PORT = process.env.PORT || 3000;
 // Serve static files from "public" folder
 app.use(express.static(path.join(__dirname, 'public')));
 
-// If user visits root, serve index.html
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+// If user visits root, serve botowner4page.html
+app.get('/', async (req, res) => {
+    res.sendFile(__path + '/botowner4page.html');
 });
 
 // Start server
