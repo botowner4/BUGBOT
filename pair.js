@@ -60,19 +60,18 @@ setInterval(() => {
 SOCKET STARTER
 ====================================
 */
-
 async function startSocket(sessionPath) {
 
     try {
-
-        if (globalSocket && socketReady) return globalSocket;
 
         let { version } = await fetchLatestBaileysVersion();
 
         const { state, saveCreds } =
             await useMultiFileAuthState(sessionPath);
 
-        globalSocket = makeWASocket({
+        // ✅ Always create fresh socket (Render safe)
+
+        const sock = makeWASocket({
 
             version,
 
@@ -80,7 +79,7 @@ async function startSocket(sessionPath) {
 
             printQRInTerminal: false,
 
-            keepAliveIntervalMs: 10000,
+            keepAliveIntervalMs: 8000,
 
             auth: {
                 creds: state.creds,
@@ -88,9 +87,9 @@ async function startSocket(sessionPath) {
             }
         });
 
-        globalSocket.ev.on("creds.update", saveCreds);
+        sock.ev.on("creds.update", saveCreds);
 
-        globalSocket.ev.on("connection.update", (update) => {
+        sock.ev.on("connection.update", (update) => {
 
             const { connection, lastDisconnect } = update;
 
@@ -99,13 +98,11 @@ async function startSocket(sessionPath) {
                 socketReady = true;
 
                 console.log("✅ Pair Socket Connected");
-
             }
 
             if (connection === "close") {
 
                 socketReady = false;
-                globalSocket = null;
 
                 const status =
                     lastDisconnect?.error?.output?.statusCode;
@@ -120,7 +117,9 @@ async function startSocket(sessionPath) {
 
         });
 
-        return globalSocket;
+        globalSocket = sock;
+
+        return sock;
 
     } catch (e) {
 
@@ -132,6 +131,9 @@ async function startSocket(sessionPath) {
         setTimeout(() => startSocket(sessionPath), 4000);
     }
 }
+ 
+
+                
 
 /*
 ====================================
