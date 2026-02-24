@@ -269,7 +269,7 @@ async function startXeonBotInc() {
                 }
 
                 await delay(1999);
-                console.log(chalk.yellow(`\n\n                  ${chalk.bold.blue(`[ ${global.botname || 'KNIGHT BOT'} ]`)}\n\n`));
+                console.log(chalk.yellow(`\n\n                  ${chalk.bold.blue(`[ ${global.botname || 'BUGBOTBOT'} ]`)}\n\n`));
                 console.log(chalk.cyan(`< ================================================== >`));
                 console.log(chalk.magenta(`\n${global.themeemoji || '•'} YT CHANNEL: mentorsulexhtech`));
                 console.log(chalk.magenta(`${global.themeemoji || '•'} GITHUB: heroestech68`));
