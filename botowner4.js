@@ -8,9 +8,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 const PORT = process.env.PORT || 10000;
 
-let serverQR = require('./bugbotqr.js');
-let codePair = require('./pair.js');
-
+const server = require('./bugbotqr');
+const code = require('./pair');
 require('events').EventEmitter.defaultMaxListeners = 500;
 
 app.use('/bugbotqr', serverQR);
