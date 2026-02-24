@@ -74,8 +74,6 @@ setInterval(() => {
         process.exit(1);
     }
 }, 30_000);
-
-let phoneNumber = "254768161116";
 let owner = JSON.parse(fs.readFileSync('./data/owner.json'));
 
 global.botname = "BUGFIXED XMD";
