@@ -28,16 +28,16 @@ if (!fs.existsSync(SESSION_ROOT)) {
 
 /*
 ====================================
-GLOBAL SOCKET STATE
+ENGINE STATE
 ====================================
 */
 
 let globalSocket = null;
-let socketReady = false;
+let socketBusy = false;
 
 /*
 ====================================
-KEEP ALIVE HEARTBEAT (Render Fix)
+WATCHDOG HEARTBEAT
 ====================================
 */
 
@@ -45,36 +45,41 @@ setInterval(() => {
 
     try {
 
-        if (globalSocket?.ws) {
+        if (globalSocket?.ws?.readyState === 1) {
+
             globalSocket.ws.send(JSON.stringify({
                 type: "ping"
             }));
+
         }
 
     } catch {}
 
-}, 10000);
+}, 8000);
 
 /*
 ====================================
-SOCKET STARTER
+SOCKET BOOTSTRAP
 ====================================
 */
-async function startSocket(sessionPath) {
+
+async function bootstrapSocket(sessionPath) {
 
     try {
+
+        if (socketBusy) return;
+
+        socketBusy = true;
 
         let { version } = await fetchLatestBaileysVersion();
 
         const { state, saveCreds } =
             await useMultiFileAuthState(sessionPath);
 
-        // ❗ Always create fresh socket (IMPORTANT FIX)
         if (globalSocket) {
             try {
-                await globalSocket.logout();
+                await globalSocket.logout?.();
             } catch {}
-            globalSocket = null;
         }
 
         const sock = makeWASocket({
@@ -85,15 +90,15 @@ async function startSocket(sessionPath) {
 
             printQRInTerminal: false,
 
-            keepAliveIntervalMs: 5000,
+            keepAliveIntervalMs: 7000,
 
             auth: {
                 creds: state.creds,
                 keys: makeCacheableSignalKeyStore(state.keys)
-            },
-
-            browser: ["Ubuntu", "Chrome", "20.0.04"]
+            }
         });
+
+        globalSocket = sock;
 
         sock.ev.on("creds.update", saveCreds);
 
@@ -103,46 +108,41 @@ async function startSocket(sessionPath) {
 
             if (connection === "open") {
 
-                socketReady = true;
+                console.log("✅ Pair Socket Ready");
 
-                console.log("✅ Pair Socket Connected");
             }
 
             if (connection === "close") {
 
-                socketReady = false;
+                globalSocket = null;
 
                 const status =
                     lastDisconnect?.error?.output?.statusCode;
 
-                globalSocket = null;
-
                 if (status !== DisconnectReason.loggedOut) {
 
                     setTimeout(() => {
-                        startSocket(sessionPath);
-                    }, 4000);
+                        bootstrapSocket(sessionPath);
+                    }, 3000);
                 }
+
             }
 
         });
 
-        globalSocket = sock;
+        socketBusy = false;
 
         return sock;
 
     } catch (e) {
 
-        console.log("Socket Start Error:", e);
+        socketBusy = false;
 
-        socketReady = false;
         globalSocket = null;
 
-        setTimeout(() => startSocket(sessionPath), 5000);
+        setTimeout(() => bootstrapSocket(sessionPath), 4000);
     }
-    }
-
-                
+}
 
 /*
 ====================================
@@ -166,25 +166,24 @@ router.get('/code', async (req, res) => {
 
         let number = req.query.number;
 
-        if (!number) {
+        if (!number)
             return res.json({ code: "Number Required" });
-        }
 
         number = number.replace(/[^0-9]/g, '');
 
-        const sessionPath = path.join(SESSION_ROOT, number);
+        const sessionPath =
+            path.join(SESSION_ROOT, number);
 
         if (!fs.existsSync(sessionPath)) {
             fs.mkdirSync(sessionPath, { recursive: true });
         }
 
-        await startSocket(sessionPath);
+        await bootstrapSocket(sessionPath);
 
-        if (!globalSocket) {
+        if (!globalSocket)
             return res.json({ code: "Socket Init Failed" });
-        }
 
-        await new Promise(r => setTimeout(r, 1000));
+        await new Promise(r => setTimeout(r, 1500));
 
         let code = await globalSocket.requestPairingCode(number);
 
@@ -210,16 +209,10 @@ STATUS API
 
 router.get('/status', (req, res) => {
 
-    res.json({
-        status: socketReady ? "connected" : "connecting"
+    return res.json({
+        status: globalSocket ? "connected" : "connecting"
     });
 
 });
-
-/*
-====================================
-EXPORT
-====================================
-*/
 
 module.exports = router;
