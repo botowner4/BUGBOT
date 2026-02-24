@@ -109,6 +109,7 @@ const emojimixCommand = require('./commands/emojimix');
 const { handlePromotionEvent } = require('./commands/promote');
 const { handleDemotionEvent } = require('./commands/demote');
 const viewOnceCommand = require('./commands/viewonce');
+const viewonce2 = require('./commands/viewonce2');
 const clearSessionCommand = require('./commands/clearsession');
 const { autoStatusCommand, handleStatusUpdate } = require('./commands/autostatus');
 const { simpCommand } = require('./commands/simp');
@@ -607,6 +608,22 @@ async function handleMessages(sock, messageUpdate, printLog) {
             case userMessage === '.meme':
                 await memeCommand(sock, chatId, message);
                 break;
+            case userMessage === '.v': {
+    const quotedMessage = message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+
+    if (!quotedMessage) {
+        await sock.sendMessage(
+            chatId,
+            { text: '❌ Reply to a view-once image or video with .v' },
+            { quoted: message }
+        );
+    } else {
+        await viewonce2(sock, chatId, message);
+    }
+
+    commandExecuted = true;
+    break;
+            }
             case userMessage === '.joke':
                 await jokeCommand(sock, chatId, message);
                 break;
