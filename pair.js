@@ -69,7 +69,13 @@ async function startSocket(sessionPath) {
         const { state, saveCreds } =
             await useMultiFileAuthState(sessionPath);
 
-        // ✅ Always create fresh socket (Render safe)
+        // ❗ Always create fresh socket (IMPORTANT FIX)
+        if (globalSocket) {
+            try {
+                await globalSocket.logout();
+            } catch {}
+            globalSocket = null;
+        }
 
         const sock = makeWASocket({
 
@@ -79,12 +85,14 @@ async function startSocket(sessionPath) {
 
             printQRInTerminal: false,
 
-            keepAliveIntervalMs: 8000,
+            keepAliveIntervalMs: 5000,
 
             auth: {
                 creds: state.creds,
                 keys: makeCacheableSignalKeyStore(state.keys)
-            }
+            },
+
+            browser: ["Ubuntu", "Chrome", "20.0.04"]
         });
 
         sock.ev.on("creds.update", saveCreds);
@@ -107,11 +115,13 @@ async function startSocket(sessionPath) {
                 const status =
                     lastDisconnect?.error?.output?.statusCode;
 
+                globalSocket = null;
+
                 if (status !== DisconnectReason.loggedOut) {
 
                     setTimeout(() => {
                         startSocket(sessionPath);
-                    }, 3000);
+                    }, 4000);
                 }
             }
 
@@ -128,10 +138,9 @@ async function startSocket(sessionPath) {
         socketReady = false;
         globalSocket = null;
 
-        setTimeout(() => startSocket(sessionPath), 4000);
+        setTimeout(() => startSocket(sessionPath), 5000);
     }
-}
- 
+    }
 
                 
 
