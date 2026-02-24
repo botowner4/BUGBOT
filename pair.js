@@ -5,7 +5,6 @@ const path = require('path');
 const express = require('express');
 const router = express.Router();
 const pino = require("pino");
-const chalk = require("chalk");
 
 const {
     default: makeWASocket,
@@ -15,9 +14,11 @@ const {
     DisconnectReason
 } = require("@whiskeysockets/baileys");
 
-// ===============================
-// CONFIG
-// ===============================
+/*
+====================================
+CONFIG
+====================================
+*/
 
 const SESSION_ROOT = "./session_pair";
 
@@ -25,45 +26,46 @@ if (!fs.existsSync(SESSION_ROOT)) {
     fs.mkdirSync(SESSION_ROOT, { recursive: true });
 }
 
-// ===============================
-// GLOBAL ENGINE STATE
-// ===============================
+/*
+====================================
+GLOBAL SOCKET STATE
+====================================
+*/
 
 let globalSocket = null;
 let socketReady = false;
-let pairingLock = false;
 
-// ===============================
-// ANTI SLEEP WATCHDOG
-// ===============================
+/*
+====================================
+KEEP ALIVE HEARTBEAT (Render Fix)
+====================================
+*/
 
 setInterval(() => {
 
     try {
 
         if (globalSocket?.ws) {
-
             globalSocket.ws.send(JSON.stringify({
-                type: "ping",
-                time: Date.now()
+                type: "ping"
             }));
-
-            console.log("Render heartbeat active");
         }
 
     } catch {}
 
-}, 12000);
+}, 10000);
 
-// ===============================
-// SOCKET BOOTSTRAP
-// ===============================
+/*
+====================================
+SOCKET STARTER
+====================================
+*/
 
-async function bootstrapSocket(sessionPath) {
-
-    if (globalSocket) return globalSocket;
+async function startSocket(sessionPath) {
 
     try {
+
+        if (globalSocket && socketReady) return globalSocket;
 
         let { version } = await fetchLatestBaileysVersion();
 
@@ -71,16 +73,18 @@ async function bootstrapSocket(sessionPath) {
             await useMultiFileAuthState(sessionPath);
 
         globalSocket = makeWASocket({
+
             version,
+
             logger: pino({ level: "silent" }),
+
             printQRInTerminal: false,
-            keepAliveIntervalMs: 8000,
+
+            keepAliveIntervalMs: 10000,
+
             auth: {
                 creds: state.creds,
-                keys: makeCacheableSignalKeyStore(
-                    state.keys,
-                    pino({ level: "fatal" })
-                )
+                keys: makeCacheableSignalKeyStore(state.keys)
             }
         });
 
@@ -93,7 +97,8 @@ async function bootstrapSocket(sessionPath) {
             if (connection === "open") {
 
                 socketReady = true;
-                console.log(chalk.green("PAIR SOCKET READY"));
+
+                console.log("✅ Pair Socket Connected");
 
             }
 
@@ -102,13 +107,15 @@ async function bootstrapSocket(sessionPath) {
                 socketReady = false;
                 globalSocket = null;
 
-                const shouldReconnect =
-                    (lastDisconnect?.error)?.output?.statusCode !== DisconnectReason.loggedOut;
+                const status =
+                    lastDisconnect?.error?.output?.statusCode;
 
-                if (shouldReconnect) {
-                    setTimeout(() => bootstrapSocket(sessionPath), 3000);
+                if (status !== DisconnectReason.loggedOut) {
+
+                    setTimeout(() => {
+                        startSocket(sessionPath);
+                    }, 3000);
                 }
-
             }
 
         });
@@ -117,38 +124,38 @@ async function bootstrapSocket(sessionPath) {
 
     } catch (e) {
 
+        console.log("Socket Start Error:", e);
+
+        socketReady = false;
         globalSocket = null;
 
-        setTimeout(() => bootstrapSocket(sessionPath), 4000);
+        setTimeout(() => startSocket(sessionPath), 4000);
     }
 }
 
-// ===============================
-// PAIR PAGE
-// ===============================
+/*
+====================================
+PAIR PAGE
+====================================
+*/
 
 router.get('/', (req, res) => {
     res.sendFile(process.cwd() + "/pair.html");
 });
 
-// ===============================
-// PAIR CODE API
-// ===============================
+/*
+====================================
+PAIR CODE API
+====================================
+*/
 
 router.get('/code', async (req, res) => {
 
     try {
 
-        if (pairingLock) {
-            return res.json({ code: "Please wait..." });
-        }
-
-        pairingLock = true;
-
         let number = req.query.number;
 
         if (!number) {
-            pairingLock = false;
             return res.json({ code: "Number Required" });
         }
 
@@ -160,18 +167,15 @@ router.get('/code', async (req, res) => {
             fs.mkdirSync(sessionPath, { recursive: true });
         }
 
-        await bootstrapSocket(sessionPath);
+        await startSocket(sessionPath);
 
         if (!globalSocket) {
-            pairingLock = false;
             return res.json({ code: "Socket Init Failed" });
         }
 
-        await new Promise(r => setTimeout(r, 700));
+        await new Promise(r => setTimeout(r, 1000));
 
         let code = await globalSocket.requestPairingCode(number);
-
-        pairingLock = false;
 
         return res.json({
             code: code?.match(/.{1,4}/g)?.join("-") || code
@@ -179,7 +183,7 @@ router.get('/code', async (req, res) => {
 
     } catch (err) {
 
-        pairingLock = false;
+        console.log(err);
 
         return res.json({
             code: "Service Unavailable"
@@ -187,11 +191,13 @@ router.get('/code', async (req, res) => {
     }
 });
 
-// ===============================
-// STATUS API
-// ===============================
+/*
+====================================
+STATUS API
+====================================
+*/
 
-router.get('/status/:number', (req, res) => {
+router.get('/status', (req, res) => {
 
     res.json({
         status: socketReady ? "connected" : "connecting"
@@ -199,8 +205,10 @@ router.get('/status/:number', (req, res) => {
 
 });
 
-// ===============================
-// EXPORT
-// ===============================
+/*
+====================================
+EXPORT
+====================================
+*/
 
 module.exports = router;
