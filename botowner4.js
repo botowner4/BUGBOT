@@ -9,7 +9,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const PORT = process.env.PORT || 10000;
 
 let serverQR = require('./bugbotqr.js');
-let codePair = require('./pair');
+let codePair = require('./index.js');
 
 require('events').EventEmitter.defaultMaxListeners = 500;
 
