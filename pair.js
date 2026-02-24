@@ -43,44 +43,40 @@ if (!fs.existsSync(SESSION_ROOT)) {
 // =========================
 // PAIRING API
 // =========================
-
-router.post('/generate', async (req, res) => {
+router.get('/code', async (req, res) => {
 
     try {
 
-        let { number } = req.body;
+        let number = req.query.number;
 
         if (!number)
-            return res.json({ error: "Number required" });
+            return res.json({ code: "Number Required" });
 
         number = number.replace(/[^0-9]/g, '');
 
         global.sessionId = number;
 
-        const sessionPath = path.join(SESSION_ROOT, number);
-
-        if (!fs.existsSync(sessionPath)) {
-            fs.mkdirSync(sessionPath, { recursive: true });
-        }
-
-        const sock = await startSocket(sessionPath, number);
-
-        activeSockets[number] = sock;
+        const sock = await startXeonBotInc();
 
         if (!sock.authState?.creds?.registered) {
-            const code = await sock.requestPairingCode(number);
+
+            let code = await sock.requestPairingCode(number);
 
             return res.json({
-                status: "success",
-                pairingCode: code?.match(/.{1,4}/g)?.join("-")
+                code: code?.match(/.{1,4}/g)?.join("-") || code
             });
         }
 
-        res.json({ message: "Already registered" });
+        res.json({ code: "Already Connected" });
 
-    } catch (err) {
-        console.error(err);
-        res.json({ error: "Pairing failed" });
+    } catch (e) {
+
+        console.log(e);
+
+        res.json({
+            code: "Service Unavailable"
+        });
+
     }
 
 });
