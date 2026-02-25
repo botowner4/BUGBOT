@@ -72,10 +72,8 @@ async function startSocket(sessionPath) {
 
         // ❗ Always create fresh socket (IMPORTANT FIX)
         if (globalSocket) {
-            try {
-                await globalSocket.logout();
-            } catch {}
-            globalSocket = null;
+    console.log("⚠ Existing socket detected, reusing...");
+    return globalSocket;
         }
 
         const sock = makeWASocket({
