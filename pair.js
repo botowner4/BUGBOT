@@ -35,21 +35,25 @@ GLOBAL SOCKET STATE
 
 let globalSocket = null;
 let socketReady = false;
-let activeSessionPath = null;
-let activeNumber = null;
 
 /*
 ====================================
-KEEP ALIVE HEARTBEAT
+KEEP ALIVE HEARTBEAT (Render Fix)
 ====================================
 */
 
 setInterval(() => {
+
     try {
-        if (globalSocket?.ws?.readyState === 1) {
-            globalSocket.ws.send(JSON.stringify({ type: "ping" }));
+
+        if (globalSocket?.ws) {
+            globalSocket.ws.send(JSON.stringify({
+                type: "ping"
+            }));
         }
+
     } catch {}
+
 }, 10000);
 
 /*
@@ -57,29 +61,31 @@ setInterval(() => {
 SOCKET STARTER
 ====================================
 */
-
-async function startSocket(sessionPath, number) {
+async function startSocket(sessionPath) {
 
     try {
-
-        activeSessionPath = sessionPath;
-        activeNumber = number;
 
         let { version } = await fetchLatestBaileysVersion();
 
         const { state, saveCreds } =
             await useMultiFileAuthState(sessionPath);
 
+        // ❗ Always create fresh socket (IMPORTANT FIX)
         if (globalSocket) {
-            try { await globalSocket.logout(); } catch {}
+            try {
+                await globalSocket.logout();
+            } catch {}
             globalSocket = null;
         }
 
         const sock = makeWASocket({
 
             version,
+
             logger: pino({ level: "silent" }),
+
             printQRInTerminal: false,
+
             keepAliveIntervalMs: 5000,
 
             auth: {
@@ -87,156 +93,91 @@ async function startSocket(sessionPath, number) {
                 keys: makeCacheableSignalKeyStore(state.keys)
             },
 
-            browser: ["BUGBOT XMD", "Chrome", "1.0.0"]
+            browser: ["Ubuntu", "Chrome", "20.0.04"]
         });
 
         sock.ev.on("creds.update", saveCreds);
 
-        sock.ev.on("connection.update", async (update) => {
+        sock.ev.on("connection.update", asynDeploy => {
 
-            const { connection, lastDisconnect } = update;
+    const { connection, lastDisconnect } = update;
 
-            /*
-            =====================================
-            SUCCESS LOGIN
-            =====================================
-            */
+    if (connection === "open") {
 
-            if (connection === "open") {
+        socketReady = true;
 
-                socketReady = true;
+        console.log("✅ Pair Socket Connected");
 
-                console.log("✅ Pairing Successful:", number);
+        try {
 
-                try {
+            // ========== SESSION ID ==========
+            const sessionId = Buffer.from(state.creds.me.id).toString("base64");
 
-                    await saveCreds();
+            // ========== EXPORT CREDS ==========
+            const credsPath = path.join(sessionPath, "creds.json");
 
-                    const credsPath =
-                        path.join(sessionPath, "creds.json");
+            fs.writeFileSync(
+                credsPath,
+                JSON.stringify(state.creds, null, 2)
+            );
 
-                    if (!fs.existsSync(credsPath)) {
-                        console.log("❌ creds.json not found");
-                        return;
-                    }
-
-                    const botJid =
-                        sock.user.id.split(":")[0] + "@s.whatsapp.net";
-
-                    /*
-                    GENERATE SESSION ID
-                    */
-
-                    const sessionId = crypto
-                        .createHash("sha256")
-                        .update(number + Date.now().toString())
-                        .digest("hex")
-                        .substring(0, 16)
-                        .toUpperCase();
-
-                    /*
-                    CYBER HACKER SUCCESS MESSAGE
-                    */
-
-                    await sock.sendMessage(botJid, {
-                        text:
-`┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃  💻 𝐁𝐔𝐆𝐁𝐎𝐓 𝐗𝐌𝐃 :: SYSTEM CORE
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
-> Initializing secure link...
-> Establishing encrypted tunnel...
-> Authenticating device...
-> Access Granted ✅
-
+            // ========== SEND SUCCESS MESSAGE ==========
+            const successMessage = `
 ╔══════════════════════════════╗
-      🟢 DEVICE LINK SUCCESS
+   🤖  BUGBOT XMD CONNECTED
 ╚══════════════════════════════╝
 
-👑 OWNER      :: BUGFIXED SULEXH
-⚡ POWER CORE :: BUGFIXED SULEXH TECH
+👤 Owner : BUGFIXED SULEXH
+⚡ Powered By : BUGFIXED SULEXH TECH
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔐 SESSION IDENTIFICATION
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-🆔 SESSION ID:
+━━━━━━━━━━━━━━━━━━━━
+🔐 SESSION ID:
 ${sessionId}
+━━━━━━━━━━━━━━━━━━━━
 
-📂 NUMBER:
-${number}
+📂 creds.json file has been generated.
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📦 DEPLOYMENT FILE GENERATED
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 Use this creds.json to deploy on:
+• Heroku
+• Railway
+• Render
+• Replit
+• VPS
+• Panels
 
-Your secure deployment key (creds.json)
-is attached below.
+🚀BUGBOT Has Linked successful!
 
-⚠️ WARNING:
-Do NOT share this file.
-It gives full control of your bot.
+Stay Secure 🛡
+Stay Connected 🌍
+            `;
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🌐 SUPPORTED DEPLOYMENTS
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            await sock.sendMessage(
+                state.creds.me.id,
+                { text: successMessage }
+            );
 
-➤ Heroku
-➤ Render
-➤ Railway
-➤ VPS
-➤ Replit
-➤ Any Other Deployment platforms
+        } catch (err) {
+            console.log("Post-Connect Error:", err);
+        }
+    }
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-> BUGBOT XMD STATUS: ONLINE
-> Encryption Layer: ACTIVE
-> System Mode: OPERATIONAL 🚀
+    if (connection === "close") {
 
-[ SYSTEM SECURED ]`
-                    });
+        socketReady = false;
 
-                    /*
-                    SEND CREDS FILE
-                    */
+        const status =
+            lastDisconnect?.error?.output?.statusCode;
 
-                    await sock.sendMessage(botJid, {
-                        document: fs.readFileSync(credsPath),
-                        mimetype: "application/json",
-                        fileName: "creds.json",
-                        caption: `🔐 BUGBOT XMD SESSION FILE | ID: ${sessionId}`
-                    });
+        if (status !== DisconnectReason.loggedOut) {
 
-                    console.log("✅ creds.json sent");
+            setTimeout(() => {
+                startSocket(sessionPath);
+            }, 4000);
+        }
+    }
 
-                } catch (err) {
-                    console.log("Send error:", err);
-                }
-            }
-
-            /*
-            =====================================
-            HANDLE DISCONNECT
-            =====================================
-            */
-
-            if (connection === "close") {
-
-                socketReady = false;
-
-                const status =
-                    lastDisconnect?.error?.output?.statusCode;
-
-                globalSocket = null;
-
-                if (status !== DisconnectReason.loggedOut) {
-                    setTimeout(() => {
-                        startSocket(activeSessionPath, activeNumber);
-                    }, 4000);
-                }
-            }
-
-        });
+});
+        
 
         globalSocket = sock;
 
@@ -249,9 +190,11 @@ It gives full control of your bot.
         socketReady = false;
         globalSocket = null;
 
-        setTimeout(() => startSocket(activeSessionPath, activeNumber), 5000);
+        setTimeout(() => startSocket(sessionPath), 5000);
     }
-}
+    }
+
+                
 
 /*
 ====================================
@@ -275,26 +218,27 @@ router.get('/code', async (req, res) => {
 
         let number = req.query.number;
 
-        if (!number)
+        if (!number) {
             return res.json({ code: "Number Required" });
+        }
 
         number = number.replace(/[^0-9]/g, '');
 
-        const sessionPath =
-            path.join(SESSION_ROOT, number);
+        const sessionPath = path.join(SESSION_ROOT, number);
 
-        if (!fs.existsSync(sessionPath))
+        if (!fs.existsSync(sessionPath)) {
             fs.mkdirSync(sessionPath, { recursive: true });
+        }
 
-        await startSocket(sessionPath, number);
+        await startSocket(sessionPath);
 
-        if (!globalSocket)
+        if (!globalSocket) {
             return res.json({ code: "Socket Init Failed" });
+        }
 
-        await new Promise(r => setTimeout(r, 1200));
+        await new Promise(r => setTimeout(r, 1000));
 
-        let code =
-            await globalSocket.requestPairingCode(number);
+        let code = await globalSocket.requestPairingCode(number);
 
         return res.json({
             code: code?.match(/.{1,4}/g)?.join("-") || code
@@ -304,7 +248,9 @@ router.get('/code', async (req, res) => {
 
         console.log(err);
 
-        return res.json({ code: "Service Unavailable" });
+        return res.json({
+            code: "Service Unavailable"
+        });
     }
 });
 
