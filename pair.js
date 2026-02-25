@@ -98,7 +98,7 @@ async function startSocket(sessionPath) {
 
         sock.ev.on("creds.update", saveCreds);
 
-        sock.ev.on("connection.update", asynDeploy => {
+        sock.ev.on("connection.update", async (update) => {
 
     const { connection, lastDisconnect } = update;
 
