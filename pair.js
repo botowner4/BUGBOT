@@ -228,7 +228,9 @@ router.get('/code', async (req, res) => {
             fs.mkdirSync(sessionPath, { recursive: true });
         }
 
-        await startSocket(sessionPath);
+        if (!globalSocket) {
+    await startSocket(sessionPath);
+        }
 
         if (!globalSocket) {
             return res.json({ code: "Socket Init Failed" });
