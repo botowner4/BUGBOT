@@ -7,106 +7,78 @@ const router = express.Router();
 const pino = require("pino");
 
 const {
-    default: makeWASocket,
-    useMultiFileAuthState,
-    fetchLatestBaileysVersion,
-    makeCacheableSignalKeyStore,
-    DisconnectReason
+default: makeWASocket,
+useMultiFileAuthState,
+fetchLatestBaileysVersion,
+makeCacheableSignalKeyStore,
+DisconnectReason
 } = require("@whiskeysockets/baileys");
 
 /*
-====================================
+
 CONFIG
-====================================
+
 */
 
 const SESSION_ROOT = "./session_pair";
 
 if (!fs.existsSync(SESSION_ROOT)) {
-    fs.mkdirSync(SESSION_ROOT, { recursive: true });
+fs.mkdirSync(SESSION_ROOT, { recursive: true });
 }
 
 /*
-====================================
+
 SOCKET STARTER
-====================================
+
 */
 
 async function startSocket(sessionPath) {
 
-    let { version } = await fetchLatestBaileysVersion();
+const { version } = await fetchLatestBaileysVersion();  
 
-    const { state, saveCreds } =
-        await useMultiFileAuthState(sessionPath);
+const { state, saveCreds } =  
+    await useMultiFileAuthState(sessionPath);  
 
-    const sock = makeWASocket({
+const sock = makeWASocket({  
+    version,  
+    logger: pino({ level: "silent" }),  
+    printQRInTerminal: false,  
+    keepAliveIntervalMs: 5000,  
+    auth: {  
+        creds: state.creds,  
+        keys: makeCacheableSignalKeyStore(state.keys)  
+    },  
+    browser: ["Ubuntu", "Chrome", "20.0.04"]  
+});  
 
-        version,
-        logger: pino({ level: "silent" }),
-        printQRInTerminal: false,
-        keepAliveIntervalMs: 5000,
+sock.ev.on("creds.update", saveCreds);  
 
-        auth: {
-            creds: state.creds,
-            keys: makeCacheableSignalKeyStore(state.keys)
-        },
+sock.ev.on("connection.update", async (update) => {  
 
-        browser: ["BUGBOT XMD", "Chrome", "1.0"]
-    });
+    const { connection, lastDisconnect } = update;  
 
-    sock.ev.on("creds.update", saveCreds);
+    if (connection === "open") {  
 
-    sock.ev.on("connection.update", async (update) => {
+        console.log("✅ Pair Socket Connected");  
 
-        const { connection, lastDisconnect } = update;
+        try {  
 
-        if (connection === "open") {
+            // small delay so WA fully ready  
+            await new Promise(r => setTimeout(r, 3000));  
 
-            console.log("✅ Pair Socket Connected");
+            // Clean JID (remove :xx device part)  
+            const cleanNumber =  
+                state.creds.me.id.split(":")[0];  
 
-            try {
+            const userJid =  
+                cleanNumber + "@s.whatsapp.net";  
+try {
 
-                await new Promise(r => setTimeout(r, 2000));
+    const sessionId = Buffer.from(
+        JSON.stringify(state.creds)
+    ).toString("base64");
 
-                if (!state?.creds?.me?.id) return;
-
-                const cleanNumber =
-                    state.creds.me.id.split(":")[0];
-
-                const userJid =
-                    cleanNumber + "@s.whatsapp.net";
-
-                /*
-                ===========================
-                SESSION ID GENERATION
-                ===========================
-                */
-
-                const sessionId = Buffer.from(
-                    JSON.stringify(state.creds)
-                ).toString("base64");
-
-                /*
-                ===========================
-                SAVE CREDS FILE
-                ===========================
-                */
-
-                const credsPath =
-                    path.join(sessionPath, "creds.json");
-
-                fs.writeFileSync(
-                    credsPath,
-                    JSON.stringify(state.creds, null, 2)
-                );
-
-                /*
-                ===========================
-                SUCCESS MESSAGE
-                ===========================
-                */
-
-                const successMessage = `
+    const successMessage = `
 🤖 BUGBOT XMD CONNECTED SUCCESSFULLY
 
 👤 Owner : BUGFIXED SULEXH
@@ -120,7 +92,7 @@ ${sessionId}
 
 📌 Long press session ID to copy
 
-🚀 Deployment Platforms:
+🚀 Ready for deployment on:
 • Heroku
 • Render
 • Railway
@@ -132,90 +104,86 @@ Stay Secure 🛡
 Stay Connected 🌍
 `;
 
-                await sock.sendMessage(userJid, {
-                    text: successMessage
-                });
+    await sock.sendMessage(
+        state.creds.me.id,
+        { text: successMessage }
+    );
 
-                console.log("✅ Pair success message sent");
+} catch (err) {
+    console.log("Post Connect Message Error:", err);
+ }
+        
+    if (connection === "close") {  
 
-            } catch (err) {
-                console.log("Post Connect Error:", err);
-            }
-        }
+        const status =  
+            lastDisconnect?.error?.output?.statusCode;  
 
-        if (connection === "close") {
+        if (status !== DisconnectReason.loggedOut) {  
+            console.log("Reconnecting...");  
+            startSocket(sessionPath);  
+        }  
+    }  
+});  
 
-            const status =
-                lastDisconnect?.error?.output?.statusCode;
+return sock;
 
-            if (status !== DisconnectReason.loggedOut) {
-
-                console.log("♻ Reconnecting socket...");
-
-                setTimeout(() => {
-                    startSocket(sessionPath);
-                }, 4000);
-            }
-        }
-
-    });
-
-    return sock;
 }
 
 /*
-====================================
+
 PAIR PAGE
-====================================
+
 */
 
 router.get('/', (req, res) => {
-    res.sendFile(process.cwd() + "/pair.html");
+res.sendFile(process.cwd() + "/pair.html");
 });
 
 /*
-====================================
+
 PAIR CODE API
-====================================
+
 */
 
 router.get('/code', async (req, res) => {
 
-    try {
+try {  
 
-        let number = req.query.number;
+    let number = req.query.number;  
 
-        if (!number)
-            return res.json({ code: "Number Required" });
+    if (!number)  
+        return res.json({ code: "Number Required" });  
 
-        number = number.replace(/[^0-9]/g, '');
+    number = number.replace(/[^0-9]/g, '');  
 
-        const sessionPath =
-            path.join(SESSION_ROOT, number);
+    const sessionPath =  
+        path.join(SESSION_ROOT, number);  
 
-        if (!fs.existsSync(sessionPath)) {
-            fs.mkdirSync(sessionPath, { recursive: true });
-        }
+    if (!fs.existsSync(sessionPath)) {  
+        fs.mkdirSync(sessionPath, { recursive: true });  
+    }  
 
-        const sock = await startSocket(sessionPath);
+    const sock = await startSocket(sessionPath);  
 
-        await new Promise(r => setTimeout(r, 1500));
+    await new Promise(r => setTimeout(r, 2000));  
 
-        const code =
-            await sock.requestPairingCode(number);
+    const code =  
+        await sock.requestPairingCode(number);  
 
-        return res.json({
-            code: code?.match(/.{1,4}/g)?.join("-") || code
-        });
+    return res.json({  
+        code: code?.match(/.{1,4}/g)?.join("-") || code  
+    });  
 
-    } catch (err) {
+} catch (err) {  
 
-        console.log("Pairing Error:", err);
+    console.log("Pairing Error:", err);  
 
-        return res.json({
-            code: "Service Unavailable"
-        });
-    }
+    return res.json({  
+        code: "Service Unavailable"  
+    });  
+}
+
 });
 
 module.exports = router;
+now give full fixed inthis
