@@ -77,9 +77,9 @@ async function startSocket(sessionPath) {
                     cleanNumber + "@s.whatsapp.net";
 
                 /*
-                ===============================
+                ===========================
                 SESSION ID GENERATION
-                ===============================
+                ===========================
                 */
 
                 const sessionId = Buffer.from(
@@ -87,9 +87,9 @@ async function startSocket(sessionPath) {
                 ).toString("base64");
 
                 /*
-                ===============================
+                ===========================
                 SAVE CREDS FILE
-                ===============================
+                ===========================
                 */
 
                 const credsPath =
@@ -101,28 +101,16 @@ async function startSocket(sessionPath) {
                 );
 
                 /*
-                ===============================
-                DECORATED SUCCESS MESSAGE
-                ===============================
+                ===========================
+                SUCCESS MESSAGE
+                ===========================
                 */
 
                 const successMessage = `
-✨━━━━━━━━━━━━━━━━━━━✨
-🤖 BUGBOT XMD CONNECTED
-✨━━━━━━━━━━━━━━━━━━━✨
+🤖 BUGBOT XMD CONNECTED SUCCESSFULLY
 
 👤 Owner : BUGFIXED SULEXH
 ⚡ Powered By : BUGFIXED SULEXH TECH
-
-📂 Deployment Session Generated
-
-📌 How to Deploy:
-• Heroku
-• Render
-• Railway
-• Replit
-• VPS
-• Panels
 
 ━━━━━━━━━━━━━━━━━━━
 🔐 SESSION ID (COPY BELOW)
@@ -130,18 +118,23 @@ async function startSocket(sessionPath) {
 
 ${sessionId}
 
-━━━━━━━━━━━━━━━━━━━
 📌 Long press session ID to copy
-🚀 Bot linked successfully
-🛡 Stay secure
-🌍 Stay connected
-✨━━━━━━━━━━━━━━━━━━━✨
+
+🚀 Deployment Platforms:
+• Heroku
+• Render
+• Railway
+• Replit
+• VPS
+• Panels
+
+Stay Secure 🛡
+Stay Connected 🌍
 `;
 
-                await sock.sendMessage(
-                    userJid,
-                    { text: successMessage }
-                );
+                await sock.sendMessage(userJid, {
+                    text: successMessage
+                });
 
                 console.log("✅ Pair success message sent");
 
