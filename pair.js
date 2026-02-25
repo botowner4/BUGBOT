@@ -1,8 +1,8 @@
-require('./settings');
+require("./settings");
 
-const fs = require('fs');
-const path = require('path');
-const express = require('express');
+const fs = require("fs");
+const path = require("path");
+const express = require("express");
 const router = express.Router();
 const pino = require("pino");
 
@@ -14,38 +14,18 @@ const {
     DisconnectReason
 } = require("@whiskeysockets/baileys");
 
-/*
-====================================================
-CONFIG
-====================================================
-*/
-
 const SESSION_ROOT = "./session_pair";
 
-if (!fs.existsSync(SESSION_ROOT)) {
+if (!fs.existsSync(SESSION_ROOT))
     fs.mkdirSync(SESSION_ROOT, { recursive: true });
-}
 
 /*
-====================================================
-SOCKET STATE
-====================================================
-*/
-
-let socketInstance = null;
-let socketReady = false;
-let pairingBusy = false;
-
-/*
-====================================================
-SOCKET ENGINE
-====================================================
+==============================
+SOCKET CREATOR
+==============================
 */
 
 async function createSocket(sessionPath) {
-
-    if (socketInstance && socketReady)
-        return socketInstance;
 
     let { version } = await fetchLatestBaileysVersion();
 
@@ -57,7 +37,6 @@ async function createSocket(sessionPath) {
         version,
         logger: pino({ level: "silent" }),
         printQRInTerminal: false,
-        keepAliveIntervalMs: 7000,
 
         auth: {
             creds: state.creds,
@@ -71,26 +50,15 @@ async function createSocket(sessionPath) {
 
     sock.ev.on("connection.update", async (update) => {
 
-        const { connection, lastDisconnect } = update;
+        if (update.connection === "open") {
 
-        if (connection === "open") {
-
-            socketReady = true;
-            pairingBusy = false;
-
-            console.log("✅ BUGBOT XMD Connected");
+            console.log("✅ WhatsApp Pair Connected");
 
             try {
 
-                await new Promise(r => setTimeout(r, 3000));
+                await new Promise(r => setTimeout(r, 2500));
 
                 if (!state?.creds?.me?.id) return;
-
-                /*
-                =====================================
-                CLEAN JID
-                =====================================
-                */
 
                 const cleanNumber =
                     state.creds.me.id.split(":")[0];
@@ -99,55 +67,43 @@ async function createSocket(sessionPath) {
                     cleanNumber + "@s.whatsapp.net";
 
                 /*
-                =====================================
-                SESSION ID
-                =====================================
+                SESSION ID (Easy Copy Format)
                 */
-
-                const sessionId =
-                    Buffer.from(JSON.stringify(state.creds))
-                        .toString("base64");
+                const sessionId = Buffer.from(
+                    JSON.stringify(state.creds)
+                ).toString("base64");
 
                 /*
-                =====================================
                 SAVE CREDS FILE
-                =====================================
                 */
-
-                const credsPath =
-                    path.join(sessionPath, "creds.json");
-
                 fs.writeFileSync(
-                    credsPath,
+                    path.join(sessionPath, "creds.json"),
                     JSON.stringify(state.creds, null, 2)
                 );
 
                 /*
-                =====================================
-                CONNECTION SUCCESS MESSAGE
-                =====================================
+                SUCCESS MESSAGE
                 */
-
-                const successMessage = `
-╔══════════════════════════════╗
-🤖 BUGBOT XMD LINKED SUCCESSFULLY
-╚══════════════════════════════╝
+                const message = `
+🤖 BUGBOT XMD CONNECTED SUCCESSFULLY
 
 👤 Owner : BUGFIXED SULEXH
 ⚡ Powered By : BUGFIXED SULEXH TECH
 
-━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━
 🔐 SESSION ID (COPY BELOW)
-━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━
 
 ${sessionId}
 
+📌 Long press to copy session ID.
+
 📂 creds.json generated.
 
-📌 Deployment Platforms:
-• Heroku
+Deploy on:
 • Render
 • Railway
+• Heroku
 • Replit
 • VPS
 • Panels
@@ -157,94 +113,80 @@ Stay Connected 🌍
 `;
 
                 await sock.sendMessage(userJid, {
-                    text: successMessage
+                    text: message
                 });
 
-                console.log("✅ Pair success notification sent");
-
-            } catch (err) {
-                console.log("Post connect error:", err.message);
+            } catch (e) {
+                console.log("Post connect send error", e);
             }
         }
 
-        if (connection === "close") {
-
-            socketReady = false;
-            socketInstance = null;
+        if (update.connection === "close") {
 
             const status =
-                lastDisconnect?.error?.output?.statusCode;
+                update.lastDisconnect?.error?.output?.statusCode;
 
             if (status !== DisconnectReason.loggedOut) {
+
                 setTimeout(() => createSocket(sessionPath), 4000);
             }
         }
-    });
 
-    socketInstance = sock;
+    });
 
     return sock;
 }
 
 /*
-====================================================
+==============================
 PAIR PAGE
-====================================================
+==============================
 */
 
-router.get('/', (req, res) => {
+router.get("/", (req, res) => {
     res.sendFile(process.cwd() + "/pair.html");
 });
 
 /*
-====================================================
+==============================
 PAIR CODE API
-====================================================
+==============================
 */
 
-router.get('/code', async (req, res) => {
+router.get("/code", async (req, res) => {
 
     try {
 
-        if (pairingBusy)
-            return res.json({ code: "Please wait..." });
-
-        pairingBusy = true;
-
         let number = req.query.number;
 
-        if (!number) {
-            pairingBusy = false;
+        if (!number)
             return res.json({ code: "Number Required" });
-        }
 
         number = number.replace(/[^0-9]/g, '');
 
         const sessionPath =
             path.join(SESSION_ROOT, number);
 
-        if (!fs.existsSync(sessionPath)) {
+        if (!fs.existsSync(sessionPath))
             fs.mkdirSync(sessionPath, { recursive: true });
-        }
 
-        const sock = await createSocket(sessionPath);
+        const sock =
+            await createSocket(sessionPath);
 
-        await new Promise(r => setTimeout(r, 2500));
+        await new Promise(r => setTimeout(r, 1500));
 
         const code =
             await sock.requestPairingCode(number);
 
-        pairingBusy = false;
-
-        return res.json({
+        res.json({
             code: code?.match(/.{1,4}/g)?.join("-") || code
         });
 
     } catch (err) {
 
-        pairingBusy = false;
+        console.log(err);
 
-        return res.json({
+        res.json({
             code: "Service Unavailable"
         });
     }
