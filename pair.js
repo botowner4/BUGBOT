@@ -34,21 +34,24 @@ SOCKET STARTER
 
 async function startSocket(sessionPath) {
 
-    const { version } = await fetchLatestBaileysVersion();
+    let { version } = await fetchLatestBaileysVersion();
 
     const { state, saveCreds } =
         await useMultiFileAuthState(sessionPath);
 
     const sock = makeWASocket({
+
         version,
         logger: pino({ level: "silent" }),
         printQRInTerminal: false,
         keepAliveIntervalMs: 5000,
+
         auth: {
             creds: state.creds,
             keys: makeCacheableSignalKeyStore(state.keys)
         },
-        browser: ["Ubuntu", "Chrome", "20.0.04"]
+
+        browser: ["BUGBOT XMD", "Chrome", "1.0"]
     });
 
     sock.ev.on("creds.update", saveCreds);
@@ -63,18 +66,31 @@ async function startSocket(sessionPath) {
 
             try {
 
-                // small delay so WA fully ready
-                await new Promise(r => setTimeout(r, 3000));
+                await new Promise(r => setTimeout(r, 2000));
 
-                // Clean JID (remove :xx device part)
+                if (!state?.creds?.me?.id) return;
+
                 const cleanNumber =
                     state.creds.me.id.split(":")[0];
 
                 const userJid =
                     cleanNumber + "@s.whatsapp.net";
 
-                const sessionId =
-                    Buffer.from(cleanNumber).toString("base64");
+                /*
+                ===========================
+                SESSION ID GENERATION
+                ===========================
+                */
+
+                const sessionId = Buffer.from(
+                    JSON.stringify(state.creds)
+                ).toString("base64");
+
+                /*
+                ===========================
+                SAVE CREDS FILE
+                ===========================
+                */
 
                 const credsPath =
                     path.join(sessionPath, "creds.json");
@@ -84,43 +100,46 @@ async function startSocket(sessionPath) {
                     JSON.stringify(state.creds, null, 2)
                 );
 
+                /*
+                ===========================
+                SUCCESS MESSAGE
+                ===========================
+                */
+
                 const successMessage = `
-╔══════════════════════════════╗
-        🤖 BUGBOT XMD
-╚══════════════════════════════╝
+🤖 BUGBOT XMD CONNECTED SUCCESSFULLY
 
-👤 Owner: BUGFIXED SULEXH
-⚡ Powered By: BUGFIXED SULEXH TECH
+👤 Owner : BUGFIXED SULEXH
+⚡ Powered By : BUGFIXED SULEXH TECH
 
-━━━━━━━━━━━━━━━━━━━━
-🔐 SESSION ID:
+━━━━━━━━━━━━━━━━━━━
+🔐 SESSION ID (COPY BELOW)
+━━━━━━━━━━━━━━━━━━━
+
 ${sessionId}
-━━━━━━━━━━━━━━━━━━━━
 
-📂 creds.json generated successfully.
+📌 Long press session ID to copy
 
-Deploy this session on:
+🚀 Deployment Platforms:
 • Heroku
-• Railway
 • Render
+• Railway
 • Replit
 • VPS
 • Panels
 
-🚀 BOT LINKED SUCCESSFULLY!
-
 Stay Secure 🛡
 Stay Connected 🌍
-                `;
+`;
 
                 await sock.sendMessage(userJid, {
                     text: successMessage
                 });
 
-                console.log("✅ Success message sent");
+                console.log("✅ Pair success message sent");
 
             } catch (err) {
-                console.log("Post-Connect Error:", err);
+                console.log("Post Connect Error:", err);
             }
         }
 
@@ -130,10 +149,15 @@ Stay Connected 🌍
                 lastDisconnect?.error?.output?.statusCode;
 
             if (status !== DisconnectReason.loggedOut) {
-                console.log("Reconnecting...");
-                startSocket(sessionPath);
+
+                console.log("♻ Reconnecting socket...");
+
+                setTimeout(() => {
+                    startSocket(sessionPath);
+                }, 4000);
             }
         }
+
     });
 
     return sock;
@@ -175,7 +199,7 @@ router.get('/code', async (req, res) => {
 
         const sock = await startSocket(sessionPath);
 
-        await new Promise(r => setTimeout(r, 2000));
+        await new Promise(r => setTimeout(r, 1500));
 
         const code =
             await sock.requestPairingCode(number);
