@@ -16,7 +16,7 @@ const settings = {
   version: '3.0.5',
 
   updateZipUrl:
-    'https://github.com/heroestech68/BUGBOT/archive/refs/heads/main.zip',
+    'https://github.com/botowner4/BUGBOT/archive/refs/heads/main.zip',
 };
 
 module.exports = settings;
