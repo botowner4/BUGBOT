@@ -72,7 +72,9 @@ sock.ev.on("connection.update", async (update) => {
 
             const userJid =  
                 cleanNumber + "@s.whatsapp.net";  
-try {
+
+        }
+            try {
 
     const sessionId = Buffer.from(
         JSON.stringify(state.creds)
