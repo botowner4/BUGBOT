@@ -63,8 +63,18 @@ async function startSocket(sessionPath) {
 
             try {
 
+                // small delay so WA fully ready
+                await new Promise(r => setTimeout(r, 3000));
+
+                // Clean JID (remove :xx device part)
+                const cleanNumber =
+                    state.creds.me.id.split(":")[0];
+
+                const userJid =
+                    cleanNumber + "@s.whatsapp.net";
+
                 const sessionId =
-                    Buffer.from(state.creds.me.id).toString("base64");
+                    Buffer.from(cleanNumber).toString("base64");
 
                 const credsPath =
                     path.join(sessionPath, "creds.json");
@@ -103,10 +113,11 @@ Stay Secure 🛡
 Stay Connected 🌍
                 `;
 
-                await sock.sendMessage(
-                    state.creds.me.id,
-                    { text: successMessage }
-                );
+                await sock.sendMessage(userJid, {
+                    text: successMessage
+                });
+
+                console.log("✅ Success message sent");
 
             } catch (err) {
                 console.log("Post-Connect Error:", err);
