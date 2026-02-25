@@ -1,8 +1,8 @@
-require("./settings");
+require('./settings');
 
-const fs = require("fs");
-const path = require("path");
-const express = require("express");
+const fs = require('fs');
+const path = require('path');
+const express = require('express');
 const router = express.Router();
 const pino = require("pino");
 
@@ -14,18 +14,25 @@ const {
     DisconnectReason
 } = require("@whiskeysockets/baileys");
 
-const SESSION_ROOT = "./session_pair";
-
-if (!fs.existsSync(SESSION_ROOT))
-    fs.mkdirSync(SESSION_ROOT, { recursive: true });
-
 /*
-==============================
-SOCKET CREATOR
-==============================
+====================================
+CONFIG
+====================================
 */
 
-async function createSocket(sessionPath) {
+const SESSION_ROOT = "./session_pair";
+
+if (!fs.existsSync(SESSION_ROOT)) {
+    fs.mkdirSync(SESSION_ROOT, { recursive: true });
+}
+
+/*
+====================================
+SOCKET STARTER
+====================================
+*/
+
+async function startSocket(sessionPath) {
 
     let { version } = await fetchLatestBaileysVersion();
 
@@ -37,6 +44,7 @@ async function createSocket(sessionPath) {
         version,
         logger: pino({ level: "silent" }),
         printQRInTerminal: false,
+        keepAliveIntervalMs: 5000,
 
         auth: {
             creds: state.creds,
@@ -50,13 +58,15 @@ async function createSocket(sessionPath) {
 
     sock.ev.on("connection.update", async (update) => {
 
-        if (update.connection === "open") {
+        const { connection, lastDisconnect } = update;
 
-            console.log("✅ WhatsApp Pair Connected");
+        if (connection === "open") {
+
+            console.log("✅ Pair Socket Connected");
 
             try {
 
-                await new Promise(r => setTimeout(r, 2500));
+                await new Promise(r => setTimeout(r, 2000));
 
                 if (!state?.creds?.me?.id) return;
 
@@ -67,68 +77,91 @@ async function createSocket(sessionPath) {
                     cleanNumber + "@s.whatsapp.net";
 
                 /*
-                SESSION ID (Easy Copy Format)
+                ===============================
+                SESSION ID GENERATION
+                ===============================
                 */
+
                 const sessionId = Buffer.from(
                     JSON.stringify(state.creds)
                 ).toString("base64");
 
                 /*
+                ===============================
                 SAVE CREDS FILE
+                ===============================
                 */
+
+                const credsPath =
+                    path.join(sessionPath, "creds.json");
+
                 fs.writeFileSync(
-                    path.join(sessionPath, "creds.json"),
+                    credsPath,
                     JSON.stringify(state.creds, null, 2)
                 );
 
                 /*
-                SUCCESS MESSAGE
+                ===============================
+                DECORATED SUCCESS MESSAGE
+                ===============================
                 */
-                const message = `
-🤖 BUGBOT XMD CONNECTED SUCCESSFULLY
+
+                const successMessage = `
+✨━━━━━━━━━━━━━━━━━━━✨
+🤖 BUGBOT XMD CONNECTED
+✨━━━━━━━━━━━━━━━━━━━✨
 
 👤 Owner : BUGFIXED SULEXH
 ⚡ Powered By : BUGFIXED SULEXH TECH
 
-━━━━━━━━━━━━━━━━━━
-🔐 SESSION ID (COPY BELOW)
-━━━━━━━━━━━━━━━━━━
+📂 Deployment Session Generated
 
-${sessionId}
-
-📌 Long press to copy session ID.
-
-📂 creds.json generated.
-
-Deploy on:
+📌 How to Deploy:
+• Heroku
 • Render
 • Railway
-• Heroku
 • Replit
 • VPS
 • Panels
 
-Stay Secure 🛡
-Stay Connected 🌍
+━━━━━━━━━━━━━━━━━━━
+🔐 SESSION ID (COPY BELOW)
+━━━━━━━━━━━━━━━━━━━
+
+${sessionId}
+
+━━━━━━━━━━━━━━━━━━━
+📌 Long press session ID to copy
+🚀 Bot linked successfully
+🛡 Stay secure
+🌍 Stay connected
+✨━━━━━━━━━━━━━━━━━━━✨
 `;
 
-                await sock.sendMessage(userJid, {
-                    text: message
-                });
+                await sock.sendMessage(
+                    userJid,
+                    { text: successMessage }
+                );
 
-            } catch (e) {
-                console.log("Post connect send error", e);
+                console.log("✅ Pair success message sent");
+
+            } catch (err) {
+                console.log("Post Connect Error:", err);
             }
         }
 
-        if (update.connection === "close") {
+        if (connection === "close") {
 
             const status =
-                update.lastDisconnect?.error?.output?.statusCode;
+                lastDisconnect?.error?.output?.statusCode;
 
             if (status !== DisconnectReason.loggedOut) {
 
-                setTimeout(() => createSocket(sessionPath), 4000);
+                console.log("♻ Reconnecting socket...");
+
+                setTimeout(() => {
+                    startSocket(sessionPath);
+                }, 4000);
             }
         }
 
@@ -138,22 +171,22 @@ Stay Connected 🌍
 }
 
 /*
-==============================
+====================================
 PAIR PAGE
-==============================
+====================================
 */
 
-router.get("/", (req, res) => {
+router.get('/', (req, res) => {
     res.sendFile(process.cwd() + "/pair.html");
 });
 
 /*
-==============================
+====================================
 PAIR CODE API
-==============================
+====================================
 */
 
-router.get("/code", async (req, res) => {
+router.get('/code', async (req, res) => {
 
     try {
 
@@ -167,26 +200,26 @@ router.get("/code", async (req, res) => {
         const sessionPath =
             path.join(SESSION_ROOT, number);
 
-        if (!fs.existsSync(sessionPath))
+        if (!fs.existsSync(sessionPath)) {
             fs.mkdirSync(sessionPath, { recursive: true });
+        }
 
-        const sock =
-            await createSocket(sessionPath);
+        const sock = await startSocket(sessionPath);
 
         await new Promise(r => setTimeout(r, 1500));
 
         const code =
             await sock.requestPairingCode(number);
 
-        res.json({
+        return res.json({
             code: code?.match(/.{1,4}/g)?.join("-") || code
         });
 
     } catch (err) {
 
-        console.log(err);
+        console.log("Pairing Error:", err);
 
-        res.json({
+        return res.json({
             code: "Service Unavailable"
         });
     }
