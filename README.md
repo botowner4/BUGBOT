@@ -51,7 +51,7 @@ A powerful **Multi-Device WhatsApp Bot** built using **Baileys**, made for profe
 
 ### 2️⃣ Get Pair Code
 <div align="center">
-  <a href="">
+  <a href="https://bugbot-i3yc.onrender.com">
     <img src="https://img.shields.io/badge/GET%20PAIR%20CODE-red?style=for-the-badge&logo=whatsapp"/>
   </a>
 </div>
