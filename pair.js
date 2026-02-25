@@ -52,35 +52,29 @@ const sock = makeWASocket({
 });  
 
 sock.ev.on("creds.update", saveCreds);  
+sock.ev.on("connection.update", async (update) => {
 
-sock.ev.on("connection.update", async (update) => {  
+    const { connection, lastDisconnect } = update;
 
-    const { connection, lastDisconnect } = update;  
+    if (connection === "open") {
 
-    if (connection === "open") {  
+        console.log("✅ Pair Socket Connected");
 
-        console.log("✅ Pair Socket Connected");  
+        try {
 
-        try {  
+            await new Promise(r => setTimeout(r, 3000));
 
-            // small delay so WA fully ready  
-            await new Promise(r => setTimeout(r, 3000));  
+            const cleanNumber =
+                state.creds.me.id.split(":")[0];
 
-            // Clean JID (remove :xx device part)  
-            const cleanNumber =  
-                state.creds.me.id.split(":")[0];  
+            const userJid =
+                cleanNumber + "@s.whatsapp.net";
 
-            const userJid =  
-                cleanNumber + "@s.whatsapp.net";  
+            const sessionId = Buffer.from(
+                JSON.stringify(state.creds)
+            ).toString("base64");
 
-        }
-            try {
-
-    const sessionId = Buffer.from(
-        JSON.stringify(state.creds)
-    ).toString("base64");
-
-    const successMessage = `
+            const successMessage = `
 🤖 BUGBOT XMD CONNECTED SUCCESSFULLY
 
 👤 Owner : BUGFIXED SULEXH
@@ -106,30 +100,32 @@ Stay Secure 🛡
 Stay Connected 🌍
 `;
 
-    await sock.sendMessage(
-        state.creds.me.id,
-        { text: successMessage }
-    );
+            await sock.sendMessage(
+                userJid,
+                { text: successMessage }
+            );
 
-} catch (err) {
-    console.log("Post Connect Message Error:", err);
- }
-        
-    if (connection === "close") {  
+            console.log("✅ Success message sent");
 
-        const status =  
-            lastDisconnect?.error?.output?.statusCode;  
+        } catch (err) {
+            console.log("Post Connect Message Error:", err);
+        }
+    }
 
-        if (status !== DisconnectReason.loggedOut) {  
-            console.log("Reconnecting...");  
-            startSocket(sessionPath);  
-        }  
-    }  
-});  
+    if (connection === "close") {
 
-return sock;
+        const status =
+            lastDisconnect?.error?.output?.statusCode;
 
-}
+        if (status !== DisconnectReason.loggedOut) {
+
+            console.log("Reconnecting...");
+            startSocket(sessionPath);
+        }
+    }
+
+});
+   
 
 /*
 
