@@ -1,36 +1,27 @@
 {
-  "name": "BUGBOT XMD",
-  "description": "WhatsApp Bot by BUGFIXED SULEXH",
+  "name": "BUGFIXED-XMD",
+  "description": "Multi Device WhatsApp Bot",
   "repository": "https://github.com/botowner4/BUGBOT",
-  "logo": "https://files.catbox.moe/rxvkde.mp4",
-  "stack": "heroku-24",
-
+  "logo": "https://files.catbox.moe/xyz.png",
+  "keywords": ["whatsapp", "bot", "multi-device"],
   "env": {
-
     "SESSION_ID": {
-      "description": "Paste your session ID here",
+      "description": "Paste your session ID or base64 creds here",
       "required": true
     },
-
-    "BOT_NAME": {
-      "description": "Bot name",
-      "value": "BUGBOT XMD"
-    },
-
     "OWNER_NUMBER": {
-      "description": "Owner number",
-      "required": false
+      "description": "Owner WhatsApp Number (e.g 2547xxxxxxx)",
+      "required": true
     },
-
-    "STARTING_BOT_MESSAGE": {
-      "value": "yes"
+    "PREFIX": {
+      "description": "Bot Command Prefix",
+      "value": "."
     }
-
   },
-
-  "buildpacks": [
-    {
-      "url": "heroku/nodejs"
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "free"
     }
-  ]
+  }
 }
