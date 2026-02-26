@@ -24,8 +24,6 @@ app.get('/', async (req, res) => {
 });
 
 // Start server
-const PORT = process.env.PORT || 8000;
-
 app.listen(PORT, "0.0.0.0", () => {
     console.log("BUGFIXED XMD Server Running ✅");
     console.log("Port => " + PORT);
