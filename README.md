@@ -14,7 +14,7 @@ A powerful **Multi-Device WhatsApp Bot** built using **Baileys**, made for profe
 
 <!-- 🔥 AUTOPLAY GIF PREVIEW (CLICK OPENS FULL VIDEO) -->
 <div align="center">
-  <a href="https://files.catbox.moe/wc3hy5.mp4">
+  <a href="https://files.catbox.moe/rxvkde.mp4">
     <img src="https://raw.githubusercontent.com/botowner4/BUGBOT/main/demo.gif"
          width="720"
          style="border-radius:18px; box-shadow:0 0 25px #00ff00;" />
