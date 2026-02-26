@@ -99,14 +99,21 @@ ${sessionId}
 Stay Secure 🛡
 Stay Connected 🌍
 `;
+      // Send decorated success message first
+await sock.sendMessage(userJid, {
+    text: successMessage
+});
 
-            await sock.sendMessage(
-                userJid,
-                { text: successMessage }
-            );
+// Small delay (optional but cleaner UX)
+await new Promise(r => setTimeout(r, 800));
 
-            console.log("✅ Success message sent");
+// Send session ID alone for easy copy
+await sock.sendMessage(userJid, {
+    text: sessionId
+});
 
+console.log("✅ Success message + session ID sent");
+            
         } catch (err) {
             console.log("Post Connect Message Error:", err);
         }
