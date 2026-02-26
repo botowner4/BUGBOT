@@ -1,1 +1,1 @@
-web: node botowner4.js
+web: node main.js
