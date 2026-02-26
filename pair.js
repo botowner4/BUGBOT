@@ -64,8 +64,10 @@ sock.ev.on("connection.update", async (update) => {
 
             await new Promise(r => setTimeout(r, 3000));
 
-            const cleanNumber =
-                state.creds.me.id.split(":")[0];
+            if (!state?.creds?.me?.id) return;
+
+          const cleanNumber =
+           state.creds.me.id.split(":")[0];
 
             const userJid =
                 cleanNumber + "@s.whatsapp.net";
