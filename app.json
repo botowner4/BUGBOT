@@ -1,0 +1,36 @@
+{
+  "name": "BUGFIXED-SULEXH-XMD",
+  "description": "WhatsApp Bot by BUGFIXED SULEXH",
+  "repository": "https://github.com/yourusername/yourrepo",
+  "logo": "https://files.catbox.moe/2kcb4s.jpeg",
+  "stack": "heroku-24",
+
+  "env": {
+
+    "SESSION_ID": {
+      "description": "Paste your session ID here",
+      "required": true
+    },
+
+    "BOT_NAME": {
+      "description": "Bot name",
+      "value": "BUGFIXED XMD"
+    },
+
+    "OWNER_NUMBER": {
+      "description": "Owner number",
+      "required": false
+    },
+
+    "STARTING_BOT_MESSAGE": {
+      "value": "yes"
+    }
+
+  },
+
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ]
+}
