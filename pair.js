@@ -126,8 +126,8 @@ Stay Connected 🌍
 
 });
    
-return sock;
-              }
+    return sock;
+}
 /*
 
 PAIR PAGE
