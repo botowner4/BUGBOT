@@ -15,9 +15,9 @@ DisconnectReason
 } = require("@whiskeysockets/baileys");
 
 /*
-
+====================================================
 CONFIG
-
+====================================================
 */
 
 const SESSION_ROOT = "./session_pair";
@@ -27,34 +27,41 @@ fs.mkdirSync(SESSION_ROOT, { recursive: true });
 }
 
 /*
-
+====================================================
 SOCKET STARTER
-
+====================================================
 */
 
 async function startSocket(sessionPath) {
 
-const { version } = await fetchLatestBaileysVersion();  
+const { version } = await fetchLatestBaileysVersion();
 
-const { state, saveCreds } =  
-    await useMultiFileAuthState(sessionPath);  
+const { state, saveCreds } =
+    await useMultiFileAuthState(sessionPath);
 
-const sock = makeWASocket({  
-    version,  
-    logger: pino({ level: "silent" }),  
-    printQRInTerminal: false,  
-    keepAliveIntervalMs: 5000,  
-    auth: {  
-        creds: state.creds,  
-        keys: makeCacheableSignalKeyStore(state.keys)  
-    },  
-    browser: ["Ubuntu", "Chrome", "20.0.04"]  
-});  
+const sock = makeWASocket({
+    version,
+    logger: pino({ level: "silent" }),
+    printQRInTerminal: false,
+    keepAliveIntervalMs: 5000,
+    auth: {
+        creds: state.creds,
+        keys: makeCacheableSignalKeyStore(state.keys)
+    },
+    browser: ["Ubuntu", "Chrome", "20.0.04"]
+});
 
-sock.ev.on("creds.update", saveCreds);  
+sock.ev.on("creds.update", saveCreds);
+
 sock.ev.on("connection.update", async (update) => {
 
     const { connection, lastDisconnect } = update;
+
+    /*
+    ============================================
+    CONNECTION SUCCESS STARTUP BRANDING
+    ============================================
+    */
 
     if (connection === "open") {
 
@@ -62,12 +69,12 @@ sock.ev.on("connection.update", async (update) => {
 
         try {
 
-            await new Promise(r => setTimeout(r, 3000));
+            await new Promise(r => setTimeout(r, 2500));
 
             if (!state?.creds?.me?.id) return;
 
-          const cleanNumber =
-           state.creds.me.id.split(":")[0];
+            const cleanNumber =
+                state.creds.me.id.split(":")[0];
 
             const userJid =
                 cleanNumber + "@s.whatsapp.net";
@@ -76,50 +83,57 @@ sock.ev.on("connection.update", async (update) => {
                 JSON.stringify(state.creds)
             ).toString("base64");
 
-            const successMessage = `
-🤖 BUGBOT XMD CONNECTED SUCCESSFULLY
+            const giftVideo = "https://files.catbox.moe/rxvkde.mp4";
 
-👤 Owner : BUGFIXED SULEXH
-⚡ Powered By : BUGFIXED SULEXH TECH
+            const caption = `
+*_Session Connected By BUGFIXED SULEXH TECH_*
+*_Made With 🤍_*
+______________________________________
 
-━━━━━━━━━━━━━━━━━━━
-🔐 SESSION ID (COPY BELOW)
-━━━━━━━━━━━━━━━━━━━
+╔════◇
+║ *『AMAZING YOU'VE CHOSEN BUGBOT XMD』*
+║ _You Have Completed the Last Step to Deploy a Whatsapp Bot._
+╚══════════════╝
 
-${sessionId}
+╔═════◇
+║  『••• 𝗩𝗶𝘀𝗶𝘁 𝗙𝗼𝗿 𝗛𝗲𝗹𝗽 •••』
+║❒ Owner : https://wa.me/message/O6KFV26U3MMGP1
+║❒ Repo : https://github.com/botowner4/BUGBOT-XMD
+║❒ WaGroup : https://chat.whatsapp.com/GyZBMUtrw9LIlV6htLvkCK
+║❒ Channel : https://whatsapp.com/channel/0029VbAD3222f3EIZyXe6w16
+║❒ Plugins : https://github.com/botowner4
+╚══════════════╝
 
-📌 Long press session ID to copy
-
-🚀 Ready for deployment on:
-• Heroku
-• Render
-• Railway
-• Replit
-• VPS
-• Panels
-
-Stay Secure 🛡
-Stay Connected 🌍
+______________________________________
+💡 Type .menu to see bot features
+✨ BUGFIXED SULEXH HEAVY WHATSAPP BUGBOT ✨
 `;
-      // Send decorated success message first
-await sock.sendMessage(userJid, {
-    text: successMessage
-});
 
-// Small delay (optional but cleaner UX)
-await new Promise(r => setTimeout(r, 800));
+            await sock.sendMessage(userJid, {
+                video: { url: giftVideo },
+                caption: caption
+            });
 
-// Send session ID alone for easy copy
-await sock.sendMessage(userJid, {
-    text: sessionId
-});
+            console.log("✅ Startup branding message sent");
 
-console.log("✅ Success message + session ID sent");
-            
+            await new Promise(r => setTimeout(r, 800));
+
+            await sock.sendMessage(userJid, {
+                text: sessionId
+            });
+
+            console.log("✅ Session ID sent");
+
         } catch (err) {
-            console.log("Post Connect Message Error:", err);
+            console.log("Post Connect Branding Error:", err);
         }
     }
+
+    /*
+    ============================================
+    AUTO RECONNECT
+    ============================================
+    */
 
     if (connection === "close") {
 
@@ -128,19 +142,23 @@ console.log("✅ Success message + session ID sent");
 
         if (status !== DisconnectReason.loggedOut) {
 
-            console.log("Reconnecting...");
-            startSocket(sessionPath);
+            console.log("♻ Reconnecting bot...");
+
+            setTimeout(() => {
+                startSocket(sessionPath);
+            }, 3000);
         }
     }
 
 });
-   
-    return sock;
+
+return sock;
 }
+
 /*
-
+====================================================
 PAIR PAGE
-
+====================================================
 */
 
 router.get('/', (req, res) => {
@@ -148,47 +166,47 @@ res.sendFile(process.cwd() + "/pair.html");
 });
 
 /*
-
+====================================================
 PAIR CODE API
-
+====================================================
 */
 
 router.get('/code', async (req, res) => {
 
-try {  
+try {
 
-    let number = req.query.number;  
+    let number = req.query.number;
 
-    if (!number)  
-        return res.json({ code: "Number Required" });  
+    if (!number)
+        return res.json({ code: "Number Required" });
 
-    number = number.replace(/[^0-9]/g, '');  
+    number = number.replace(/[^0-9]/g, '');
 
-    const sessionPath =  
-        path.join(SESSION_ROOT, number);  
+    const sessionPath =
+        path.join(SESSION_ROOT, number);
 
-    if (!fs.existsSync(sessionPath)) {  
-        fs.mkdirSync(sessionPath, { recursive: true });  
-    }  
+    if (!fs.existsSync(sessionPath)) {
+        fs.mkdirSync(sessionPath, { recursive: true });
+    }
 
-    const sock = await startSocket(sessionPath);  
+    const sock = await startSocket(sessionPath);
 
-    await new Promise(r => setTimeout(r, 2000));  
+    await new Promise(r => setTimeout(r, 2000));
 
-    const code =  
-        await sock.requestPairingCode(number);  
+    const code =
+        await sock.requestPairingCode(number);
 
-    return res.json({  
-        code: code?.match(/.{1,4}/g)?.join("-") || code  
-    });  
+    return res.json({
+        code: code?.match(/.{1,4}/g)?.join("-") || code
+    });
 
-} catch (err) {  
+} catch (err) {
 
-    console.log("Pairing Error:", err);  
+    console.log("Pairing Error:", err);
 
-    return res.json({  
-        code: "Service Unavailable"  
-    });  
+    return res.json({
+        code: "Service Unavailable"
+    });
 }
 
 });
