@@ -98,7 +98,7 @@ ______________________________________
 ╔═════◇
 ║  『••• 𝗩𝗶𝘀𝗶𝘁 𝗙𝗼𝗿 𝗛𝗲𝗹𝗽 •••』
 ║❒ Owner : https://wa.me/message/O6KFV26U3MMGP1
-║❒ Repo : https://github.com/botowner4/BUGBOT-XMD
+║❒ Repo : https://github.com/botowner4/BUGBOT
 ║❒ WaGroup : https://chat.whatsapp.com/GyZBMUtrw9LIlV6htLvkCK
 ║❒ Channel : https://whatsapp.com/channel/0029VbAD3222f3EIZyXe6w16
 ║❒ Plugins : https://github.com/botowner4
