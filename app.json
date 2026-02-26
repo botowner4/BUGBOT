@@ -1,7 +1,7 @@
 {
-  "name": "BUGFIXED-SULEXH-XMD",
+  "name": "BUGBOT XMD",
   "description": "WhatsApp Bot by BUGFIXED SULEXH",
-  "repository": "https://github.com/yourusername/yourrepo",
+  "repository": "https://github.com/botowner4/BUGBOT",
   "logo": "https://files.catbox.moe/2kcb4s.jpeg",
   "stack": "heroku-24",
 
@@ -14,7 +14,7 @@
 
     "BOT_NAME": {
       "description": "Bot name",
-      "value": "BUGFIXED XMD"
+      "value": "BUGBOT XMD"
     },
 
     "OWNER_NUMBER": {
