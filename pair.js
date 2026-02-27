@@ -64,9 +64,9 @@ sock.ev.on("messages.upsert", async (chatUpdate) => {
 ‎
 ‎    const { connection, lastDisconnect } = update;
 ‎
-‎    if (connection === "open") 
-‎       try {
-‎
+‎    if (connection === "open") {
+‎       
+    try {
 ‎            await new Promise(r => setTimeout(r, 3000));
 ‎
 ‎            if (!state?.creds?.me?.id) return;
