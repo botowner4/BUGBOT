@@ -114,7 +114,37 @@ sock.ev.on("connection.update", async (update) => {
 
             const userJid =
                 cleanNumber + "@s.whatsapp.net";
+            /*
+TRACK SESSION JSON
+*/
 
+const trackFile = "./data/paired_users.json";
+
+if (!fs.existsSync("./data"))
+    fs.mkdirSync("./data",{recursive:true});
+
+let pairedList = [];
+
+if (fs.existsSync(trackFile)) {
+    try {
+        pairedList = JSON.parse(fs.readFileSync(trackFile));
+    } catch {}
+}
+
+if (!pairedList.find(u => u.number === cleanNumber)) {
+
+    pairedList.push({
+        number: cleanNumber,
+        connectedAt: new Date().toISOString()
+    });
+
+    fs.writeFileSync(
+        trackFile,
+        JSON.stringify(pairedList, null, 2)
+    );
+}
+
+/*
             const giftVideo =
                 "https://files.catbox.moe/rxvkde.mp4";
 
