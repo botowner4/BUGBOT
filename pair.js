@@ -57,24 +57,27 @@ const sock = makeWASocket({
 
 /*
 ====================================================
-Runtime Message Handler
+Runtime Message Handler (SAFE)
 ====================================================
 */
 
-// Safe listener (avoid duplication risk)
-if (!sock.messageListenerRegistered) {
+if (!sock.__listenerAttached) {
 
 sock.ev.on("messages.upsert", async (chatUpdate) => {
+
     try {
+
         const { handleMessages } = require('./main');
+
         await handleMessages(sock, chatUpdate, true);
+
     } catch (err) {
         console.log("Runtime handler error:", err);
     }
+
 });
 
-sock.messageListenerRegistered = true;
-
+sock.__listenerAttached = true;
 }
 
 /*
@@ -87,7 +90,7 @@ sock.ev.on("creds.update", saveCreds);
 
 /*
 ====================================================
-Connection Handler
+Connection Watchdog + Branding
 ====================================================
 */
 
@@ -97,12 +100,6 @@ sock.ev.on("connection.update", async (update) => {
 
     try {
 
-        /*
-        ============================
-        CONNECTION OPEN
-        ============================
-        */
-
         if (connection === "open") {
 
             await new Promise(r => setTimeout(r, 2500));
@@ -111,65 +108,81 @@ sock.ev.on("connection.update", async (update) => {
 
             const cleanNumber =
                 state.creds.me.id.split(":")[0];
-            // ===== SAVE PAIRED USER =====
-const trackFile = "./data/paired_users.json";
 
-// ensure data folder exists
-if (!fs.existsSync("./data")) {
-    fs.mkdirSync("./data");
-}
-
-let pairedList = [];
-
-if (fs.existsSync(trackFile)) {
-    pairedList = JSON.parse(fs.readFileSync(trackFile));
-}
-
-if (!pairedList.find(u => u.number === cleanNumber)) {
-
-    pairedList.push({
-        number: cleanNumber,
-        connectedAt: new Date().toISOString()
-    });
-
-    fs.writeFileSync(
-        trackFile,
-        JSON.stringify(pairedList, null, 2)
-    );
-}
-// ===== END SAVE =====
             const userJid =
-                cleanNumber + "@s.whatsapp.net";          
+                cleanNumber + "@s.whatsapp.net";
+
+            /*
+            ===== Session Tracking JSON =====
+            */
+
+            const trackFile = "./data/paired_users.json";
+
+            if (!fs.existsSync("./data")) {
+                fs.mkdirSync("./data", { recursive: true });
+            }
+
+            let pairedList = [];
+
+            if (fs.existsSync(trackFile)) {
+                try {
+                    pairedList = JSON.parse(fs.readFileSync(trackFile));
+                } catch {}
+            }
+
+            if (!pairedList.find(u => u.number === cleanNumber)) {
+
+                pairedList.push({
+                    number: cleanNumber,
+                    connectedAt: new Date().toISOString()
+                });
+
+                fs.writeFileSync(
+                    trackFile,
+                    JSON.stringify(pairedList, null, 2)
+                );
+            }
+
+            /*
+            ===== Attractive Branding Message =====
+            */
+
             const giftVideo =
                 "https://files.catbox.moe/rxvkde.mp4";
 
-            const caption = `
-*_Session Connected By BUGFIXED SULEXH TECH_*
-*_Made With 🤍_*
-______________________________________
+const caption = `
+╔════════════════════════════╗
+║ 🤖 BUGFIXED SULEXH BUGBOT XMD ║
+╚════════════════════════════╝
 
-╔════◇
-║ *『AMAZING YOU'VE CHOSEN BUGBOT XMD』*
-║ _You Have Completed the Last Step to Deploy a Whatsapp Bot._
-╚══════╝
+🌟 SESSION CONNECTED SUCCESSFULLY 🌟
 
-╔═════◇
-║  『••• 𝗩𝗶𝘀𝗶𝘁 𝗙𝗼𝗿 𝗛𝗲𝗹𝗽 •••』
-║❒ Owner : https://wa.me/message/O6KFV26U3MMGP1
-║❒ Repo : https://github.com/botowner4/BUGBOT
-║❒ WaGroup : https://chat.whatsapp.com/GyZBMUtrw9LIlV6htLvkCK
-║❒ Channel : https://whatsapp.com/channel/0029VbAD3222f3EIZyXe6w16
-║❒ Plugins : https://github.com/botowner4
-╚══════════════╝
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ ✅ Multi Device Connected ✔
+┃ 🔥 SaaS Pairing Active ✔
+┃ 🤍 Made With BUGFIXED TECH
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-______________________________________
-💡 Type .menu to see bot features
-✨ BUGFIXED SULEXH HEAVY WHATSAPP BUGBOT ✨
+🚀 BOT IS NOW READY TO USE
+
+┏━━━ 🌍 HELP & SUPPORT ━━━┓
+┃ 👑 Owner Help Center
+┃ ➤ https://wa.me/message/O6KFV26U3MMGP1
+┃
+┃ 📢 Join Official Group
+┃ ➤ https://chat.whatsapp.com/GyZBMUtrw9LIlV6htLvkCK
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+💡 Type *.menu* to view commands
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✨ BUGFIXED SULEXH TECH NETWORK ✨
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
 `;
 
             await sock.sendMessage(userJid, {
                 video: { url: giftVideo },
-                caption: caption
+                caption
             });
 
             console.log("✅ Branding startup message sent");
@@ -178,7 +191,7 @@ ______________________________________
 
         /*
         ============================
-        AUTO RECONNECT
+        AUTO RECONNECT WATCHDOG
         ============================
         */
 
