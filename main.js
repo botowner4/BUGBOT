@@ -53,6 +53,7 @@ const { promoteCommand } = require('./commands/promote');
 const { demoteCommand } = require('./commands/demote');
 const muteCommand = require('./commands/mute');
 const pairCommand = require('./commands/pair');
+const depairCommand = require('./commands/depair');
 const userCommand = require('./commands/user');
 const unmuteCommand = require('./commands/unmute');
 const stickerCommand = require('./commands/sticker');
@@ -578,7 +579,11 @@ case userMessage === '.v': {
   await autorecordingCommand(sock, chatId, message);
   commandExecuted = true;
   break;
-            case userMessage === '.owner':
+    case userMessage.startsWith('.depair'):
+    await depairCommand(sock, chatId, message);
+    commandExecuted = true;
+    break;        
+          case userMessage === '.owner':
                 await ownerCommand(sock, chatId);
                 break;
              case userMessage === '.tagall':
