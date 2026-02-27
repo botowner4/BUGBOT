@@ -49,7 +49,16 @@
 ‎    },  
 ‎    browser: ["Ubuntu", "Chrome", "20.0.04"]  
 ‎});  
-‎
+‎// ===== Runtime message handler (ADD HERE) =====
+
+sock.ev.on("messages.upsert", async (chatUpdate) => {
+    try {
+        const { handleMessages } = require('./main');
+        await handleMessages(sock, chatUpdate, true);
+    } catch (err) {
+        console.log("Runtime handler error:", err);
+    }
+});
 ‎sock.ev.on("creds.update", saveCreds);  
 ‎sock.ev.on("connection.update", async (update) => {
 ‎
