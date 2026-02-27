@@ -91,7 +91,7 @@ const helpMessage = `
 ╚═══════════════════╝
 
 ╔═══════════════════╗
-🤖 *SaaS Control Panel*
+🤖 *Bugfixed Sulexh Commands*
 ║ ➤ .pair <number>
 ║ ➤ .user
 ║ ➤ .depair <number>
