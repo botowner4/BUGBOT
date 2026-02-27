@@ -159,7 +159,7 @@ const caption = `
 
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃ ✅ Multi Device Connected ✔
-┃ 🔥 SaaS Pairing Active ✔
+┃ 🔥 *BUGBOT ENGINE ACTIVE* ✔
 ┃ 🤍 Made With BUGFIXED TECH
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
@@ -176,7 +176,7 @@ const caption = `
 💡 Type *.menu* to view commands
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
-✨ BUGFIXED SULEXH TECH NETWORK ✨
+✨ *BUGFIXED SULEXH TECH ADVANCED BOT* ✨
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 `;
 
