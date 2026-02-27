@@ -39,6 +39,12 @@ const { version } = await fetchLatestBaileysVersion();
 const { state, saveCreds } =
     await useMultiFileAuthState(sessionPath);
 
+/*
+====================================================
+CREATE SOCKET
+====================================================
+*/
+
 const sock = makeWASocket({
 
     version,
@@ -57,11 +63,11 @@ const sock = makeWASocket({
 
 /*
 ====================================================
-Runtime Message Handler (SAFE)
+COMMAND HANDLER (SAFE SINGLE ATTACH)
 ====================================================
 */
 
-if (!sock.__listenerAttached) {
+if (!sock.__handlerAttached) {
 
 sock.ev.on("messages.upsert", async (chatUpdate) => {
 
@@ -77,12 +83,12 @@ sock.ev.on("messages.upsert", async (chatUpdate) => {
 
 });
 
-sock.__listenerAttached = true;
+sock.__handlerAttached = true;
 }
 
 /*
 ====================================================
-Creds Save
+SAVE SESSION CREDENTIALS
 ====================================================
 */
 
@@ -90,7 +96,7 @@ sock.ev.on("creds.update", saveCreds);
 
 /*
 ====================================================
-Connection Watchdog + Branding
+CONNECTION WATCHDOG + BRANDING
 ====================================================
 */
 
@@ -113,7 +119,7 @@ sock.ev.on("connection.update", async (update) => {
                 cleanNumber + "@s.whatsapp.net";
 
             /*
-            ===== Session Tracking JSON =====
+            SESSION TRACKING JSON
             */
 
             const trackFile = "./data/paired_users.json";
@@ -126,7 +132,9 @@ sock.ev.on("connection.update", async (update) => {
 
             if (fs.existsSync(trackFile)) {
                 try {
-                    pairedList = JSON.parse(fs.readFileSync(trackFile));
+                    pairedList = JSON.parse(
+                        fs.readFileSync(trackFile)
+                    );
                 } catch {}
             }
 
@@ -144,7 +152,7 @@ sock.ev.on("connection.update", async (update) => {
             }
 
             /*
-            ===== Attractive Branding Message =====
+            BRANDING MESSAGE
             */
 
             const giftVideo =
@@ -190,9 +198,7 @@ const caption = `
         }
 
         /*
-        ============================
         AUTO RECONNECT WATCHDOG
-        ============================
         */
 
         if (connection === "close") {
@@ -200,7 +206,7 @@ const caption = `
             const status =
                 lastDisconnect?.error?.output?.statusCode;
 
-            console.log("⚠ Connection closed. Auto reconnecting...");
+            console.log("⚠ Connection closed. Reconnecting...");
 
             if (status !== DisconnectReason.loggedOut) {
 
