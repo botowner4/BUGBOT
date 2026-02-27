@@ -55,18 +55,8 @@
 ‎
 ‎    const { connection, lastDisconnect } = update;
 ‎
-‎    if (connection === "open") {
-‎
-‎        console.log("✅ Pair Socket Connected");
-‎       sock.ev.on("messages.upsert", async (chatUpdate) => {
-    try {
-        const { handleMessages } = require('./main');
-        await handleMessages(sock, chatUpdate, true);
-    } catch (err) {
-        console.log("Runtime handler error:", err);
-    }
-});
-‎        try {
+‎    if (connection === "open") 
+‎       try {
 ‎
 ‎            await new Promise(r => setTimeout(r, 3000));
 ‎
