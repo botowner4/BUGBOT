@@ -22,6 +22,10 @@ CONFIG
 
 const SESSION_ROOT = "./session_pair";
 
+/* ✅ Socket tracker (IMPORTANT) */
+const activeSockets = new Map();
+
+/* Create session root */
 if (!fs.existsSync(SESSION_ROOT)) {
 fs.mkdirSync(SESSION_ROOT, { recursive: true });
 }
@@ -33,6 +37,11 @@ SOCKET STARTER
 */
 
 async function startSocket(sessionPath) {
+
+if (activeSockets.has(sessionPath)) {
+console.log("⚠ Socket already running:", sessionPath);
+return activeSockets.get(sessionPath);
+}
 
 const { version } = await fetchLatestBaileysVersion();
 
@@ -51,7 +60,14 @@ const sock = makeWASocket({
     browser: ["Ubuntu", "Chrome", "20.0.04"]
 });
 
+/* Save creds */
 sock.ev.on("creds.update", saveCreds);
+
+/*
+====================================================
+CONNECTION HANDLER
+====================================================
+*/
 
 sock.ev.on("connection.update", async (update) => {
 
@@ -59,7 +75,7 @@ sock.ev.on("connection.update", async (update) => {
 
     /*
     ============================================
-    CONNECTION SUCCESS STARTUP BRANDING
+    SUCCESS CONNECTION BRANDING
     ============================================
     */
 
@@ -131,7 +147,7 @@ ______________________________________
 
     /*
     ============================================
-    AUTO RECONNECT
+    AUTO RECONNECT SAFE VERSION
     ============================================
     */
 
@@ -140,17 +156,25 @@ ______________________________________
         const status =
             lastDisconnect?.error?.output?.statusCode;
 
+        activeSockets.delete(sessionPath);
+
         if (status !== DisconnectReason.loggedOut) {
 
-            console.log("♻ Reconnecting bot...");
+            console.log("♻ Reconnecting bot:", sessionPath);
 
-            setTimeout(() => {
-                startSocket(sessionPath);
-            }, 3000);
+            setTimeout(async () => {
+                await startSocket(sessionPath);
+            }, 4000);
+
+        } else {
+            console.log("❌ Bot logged out:", sessionPath);
         }
     }
 
 });
+
+/* Store socket instance */
+activeSockets.set(sessionPath, sock);
 
 return sock;
 }
