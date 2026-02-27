@@ -111,10 +111,7 @@ sock.ev.on("connection.update", async (update) => {
 
             const cleanNumber =
                 state.creds.me.id.split(":")[0];
-
-            const userJid =
-                cleanNumber + "@s.whatsapp.net";
-          // ===== SAVE PAIRED USER =====
+            // ===== SAVE PAIRED USER =====
 const trackFile = "./data/paired_users.json";
 
 // ensure data folder exists
@@ -141,6 +138,8 @@ if (!pairedList.find(u => u.number === cleanNumber)) {
     );
 }
 // ===== END SAVE =====
+            const userJid =
+                cleanNumber + "@s.whatsapp.net";          
             const giftVideo =
                 "https://files.catbox.moe/rxvkde.mp4";
 
