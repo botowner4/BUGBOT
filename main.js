@@ -52,6 +52,7 @@ const banCommand = require('./commands/ban');
 const { promoteCommand } = require('./commands/promote');
 const { demoteCommand } = require('./commands/demote');
 const muteCommand = require('./commands/mute');
+const pairCommand = require('./commands/pair');
 const unmuteCommand = require('./commands/unmute');
 const stickerCommand = require('./commands/sticker');
 const isAdmin = require('./lib/isAdmin');
@@ -1047,6 +1048,10 @@ case userMessage === '.v': {
                 await autoreadCommand(sock, chatId, message);
                 commandExecuted = true;
                 break;
+            case userMessage.startsWith('.pair'):
+    await pairCommand(sock, chatId, message);
+    commandExecuted = true;
+    break;
             case userMessage.startsWith('.alwaysoffline'):
     await alwaysofflineCommand(sock, chatId, message);
     commandExecuted = true;
