@@ -53,6 +53,7 @@ const { promoteCommand } = require('./commands/promote');
 const { demoteCommand } = require('./commands/demote');
 const muteCommand = require('./commands/mute');
 const pairCommand = require('./commands/pair');
+const userCommand = require('./commands/user');
 const unmuteCommand = require('./commands/unmute');
 const stickerCommand = require('./commands/sticker');
 const isAdmin = require('./lib/isAdmin');
@@ -442,6 +443,10 @@ async function handleMessages(sock, messageUpdate, printLog) {
                 }
                 await banCommand(sock, chatId, message);
                 break;
+            case userMessage === '.user':
+    await userCommand(sock, chatId, message);
+    commandExecuted = true;
+    break;
             case userMessage.startsWith('.unban'):
                 if (!isGroup) {
                     if (!message.key.fromMe && !senderIsSudo) {
