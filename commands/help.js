@@ -1,4 +1,4 @@
-const settings = require('../settings');
+st settings = require('../settings');
 const axios = require('axios');
 
 async function helpCommand(sock, chatId, message) {
@@ -11,10 +11,10 @@ const helpMessage = `
    YT : BUGFIXED-SULEXH-TECH
 ╚═══════════════════╝
 
-*Available Commands:*
+*Available Commands*
 
 ╔═══════════════════╗
-🌐 *General Commands*:
+🌐 *General Commands*
 ║ ➤ .help / .menu
 ║ ➤ .ping
 ║ ➤ .alive
@@ -31,15 +31,16 @@ const helpMessage = `
 ║ ➤ .groupinfo
 ║ ➤ .staff / .admins
 ║ ➤ .vv
+║ ➤ .v
 ║ ➤ .trt <text> <lang>
 ║ ➤ .ss <link>
 ║ ➤ .jid
 ║ ➤ .url
 ║ ➤ .quran menu
-╚═══════════════════╝ 
+╚═══════════════════╝
 
 ╔═══════════════════╗
-👮‍♂️ *Admin Commands*:
+👮‍♂️ *Admin Commands*
 ║ ➤ .ban @user
 ║ ➤ .promote @user
 ║ ➤ .demote @user
@@ -67,7 +68,7 @@ const helpMessage = `
 ╚═══════════════════╝
 
 ╔═══════════════════╗
-🔒 *Owner Commands*:
+🔒 *Owner Commands*
 ║ ➤ .mode <public/private>
 ║ ➤ .clearsession
 ║ ➤ .antidelete
@@ -90,7 +91,14 @@ const helpMessage = `
 ╚═══════════════════╝
 
 ╔═══════════════════╗
-🎨 *Image/Sticker Commands*:
+🤖 *SaaS Control Panel*
+║ ➤ .pair <number>
+║ ➤ .user
+║ ➤ .depair <number>
+╚═══════════════════╝
+
+╔═══════════════════╗
+🎨 *Image/Sticker Commands*
 ║ ➤ .blur <image>
 ║ ➤ .simage <reply to sticker>
 ║ ➤ .sticker <reply to image>
@@ -103,67 +111,10 @@ const helpMessage = `
 ║ ➤ .emojimix <emj1>+<emj2>
 ║ ➤ .igs <insta link>
 ║ ➤ .igsc <insta link>
-╚═══════════════════╝  
-
-╔═══════════════════╗
-🎮 *Game Commands*:
-║ ➤ .tictactoe @user
-║ ➤ .hangman
-║ ➤ .guess <letter>
-║ ➤ .trivia
-║ ➤ .answer <answer>
-║ ➤ .truth
-║ ➤ .dare
 ╚═══════════════════╝
 
 ╔═══════════════════╗
-🤖 *AI Commands*:
-║ ➤ .gpt <question>
-║ ➤ .gemini <question>
-║ ➤ .imagine <prompt>
-║ ➤ .flux <prompt>
-║ ➤ .sora <prompt>
-╚═══════════════════╝
-
-╔═══════════════════╗
-🎯 *Fun Commands*:
-║ ➤ .compliment @user
-║ ➤ .insult @user
-║ ➤ .flirt
-║ ➤ .shayari
-║ ➤ .goodnight
-║ ➤ .roseday
-║ ➤ .character @user
-║ ➤ .wasted @user
-║ ➤ .ship @user
-║ ➤ .simp @user
-║ ➤ .stupid @user [text]
-╚═══════════════════╝
-
-╔═══════════════════╗
-🔤 *Textmaker*:
-║ ➤ .metallic <text>
-║ ➤ .ice <text>
-║ ➤ .snow <text>
-║ ➤ .impressive <text>
-║ ➤ .matrix <text>
-║ ➤ .light <text>
-║ ➤ .neon <text>
-║ ➤ .devil <text>
-║ ➤ .purple <text>
-║ ➤ .thunder <text>
-║ ➤ .leaves <text>
-║ ➤ .1917 <text>
-║ ➤ .arena <text>
-║ ➤ .hacker <text>
-║ ➤ .sand <text>
-║ ➤ .blackpink <text>
-║ ➤ .glitch <text>
-║ ➤ .fire <text>
-╚═══════════════════╝
-
-╔═══════════════════╗
-📥 *Downloader*:
+📥 *Downloader*
 ║ ➤ .play <song_name>
 ║ ➤ .song <song_name>
 ║ ➤ .spotify <query>
@@ -174,55 +125,14 @@ const helpMessage = `
 ║ ➤ .ytmp4 <Link>
 ╚═══════════════════╝
 
-╔═══════════════════╗
-🧩 *MISC*:
-║ ➤ .heart
-║ ➤ .horny
-║ ➤ .circle
-║ ➤ .lgbt
-║ ➤ .lolice
-║ ➤ .its-so-stupid
-║ ➤ .namecard
-║ ➤ .oogway
-║ ➤ .tweet
-║ ➤ .ytcomment
-║ ➤ .comrade
-║ ➤ .gay
-║ ➤ .glass
-║ ➤ .jail
-║ ➤ .passed
-║ ➤ .triggered
-╚═══════════════════╝
-
-╔═══════════════════╗
-🖼️ *ANIME*:
-║ ➤ .nom
-║ ➤ .poke
-║ ➤ .cry
-║ ➤ .kiss
-║ ➤ .pat
-║ ➤ .hug
-║ ➤ .wink
-║ ➤ .facepalm
-╚═══════════════════╝
-
-╔═══════════════════╗
-💻 *Github Commands*:
-║ ➤ .git
-║ ➤ .github
-║ ➤ .sc
-║ ➤ .script
-║ ➤ .repo
-╚═══════════════════╝
-
-🔔 *Join our OFFICIAL WhatsApp Channel below*
+🔔 Join our OFFICIAL WhatsApp Channel below
 `;
 
 try {
-    const videoURL = "https://files.catbox.moe/rxvkde.mp4";
-    const audioURL = "https://files.catbox.moe/larc7j.mp3";
 
-    // ✅ SEND VIDEO MENU
+    const videoURL = "https://files.catbox.moe/rxvkde.mp4";
+    const audioURL = "";
+
     await sock.sendMessage(
         chatId,
         {
@@ -230,20 +140,6 @@ try {
             caption: helpMessage,
             gifPlayback: true,
             footer: 'BUGFIXED-SULEXH-XMD',
-            templateButtons: [
-                {
-                    urlButton: {
-                        displayText: '👑 Owner',
-                        url: 'https://wa.me/254768161116'
-                    }
-                },
-                {
-                    urlButton: {
-                        displayText: '🔔 View Channel',
-                        url: 'https://whatsapp.com/channel/0029VbAD3222f3EIZyXe6w16'
-                    }
-                }
-            ],
             headerType: 4,
             contextInfo: {
                 newsletterJid: "0029VbAD3222f3EIZyXe6w16@broadcast",
@@ -254,8 +150,8 @@ try {
         { quoted: message }
     );
 
-    // ✅ SEND AUDIO MENU
     const audio = await axios.get(audioURL, { responseType: 'arraybuffer' });
+
     await sock.sendMessage(chatId, {
         audio: audio.data,
         mimetype: 'audio/mpeg',
@@ -263,7 +159,9 @@ try {
     });
 
 } catch (error) {
+
     console.error("HELP MENU ERROR:", error);
+
     await sock.sendMessage(chatId, { text: helpMessage });
 }
 
