@@ -59,6 +59,13 @@ sock.ev.on("messages.upsert", async (chatUpdate) => {
         console.log("Runtime handler error:", err);
     }
 });
+// ===== Connection watchdog (server sleep recovery) =====
+setInterval(() => {
+    if (!sock?.user) {
+        console.log("🔄 Bot session lost, reconnecting...");
+        startSocket(sessionPath);
+    }
+}, 60000);
 ‎sock.ev.on("creds.update", saveCreds);  
 ‎sock.ev.on("connection.update", async (update) => {
 ‎
