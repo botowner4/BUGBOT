@@ -127,21 +127,26 @@ sock.ev.on("messages.upsert", async (chatUpdate) => {
 ‎    }
 ‎
 ‎    if (connection === "close") {
+
+    const status =
+        lastDisconnect?.error?.output?.statusCode;
+
+    console.log("⚠ Connection closed. Auto reconnecting...");
+
+    if (status !== DisconnectReason.loggedOut) {
+
+        setTimeout(() => {
+            console.log("♻ Restarting socket connection...");
+            startSocket(sessionPath);
+        }, 5000);
+
+    } else {
+
+        console.log("❌ Logged out from WhatsApp. Pair again from website.");
+    }
+}
 ‎
-‎        const status =
-‎            lastDisconnect?.error?.output?.statusCode;
 ‎
-‎        if (status !== DisconnectReason.loggedOut) {
-‎
-‎            console.log("Reconnecting...");
-‎            startSocket(sessionPath);
-‎        }
-‎    }
-‎
-‎});
-‎   
-‎    return sock;
-‎}
 ‎/*
 ‎
 ‎PAIR PAGE
