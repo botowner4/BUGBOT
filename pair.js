@@ -102,20 +102,24 @@ sock.ev.on("connection.update", async (update) => {
         CONNECTION OPEN
         ============================
         */
+if (connection === "open") {
 
-        if (connection === "open") {
+    try {
 
-            await new Promise(r => setTimeout(r, 2500));
+        console.log("✅ Socket connected");
 
-            if (!state?.creds?.me?.id) return;
+        await new Promise(r => setTimeout(r, 2500));
 
-            const cleanNumber =
-                state.creds.me.id.split(":")[0];
+        if (!sock?.user?.id) return;
 
-            const userJid =
-                cleanNumber + "@s.whatsapp.net";
-            /*
-TRACK SESSION JSON
+        const cleanNumber =
+            sock.user.id.split(":")[0];
+
+        const userJid =
+            cleanNumber + "@s.whatsapp.net";
+
+/*
+SESSION TRACKING
 */
 
 const trackFile = "./data/paired_users.json";
@@ -128,7 +132,9 @@ let pairedList = [];
 if (fs.existsSync(trackFile)) {
     try {
         pairedList = JSON.parse(fs.readFileSync(trackFile));
-    } catch {}
+    } catch(e){
+        pairedList = [];
+    }
 }
 
 if (!pairedList.find(u => u.number === cleanNumber)) {
@@ -145,10 +151,13 @@ if (!pairedList.find(u => u.number === cleanNumber)) {
 }
 
 /*
-            const giftVideo =
-                "https://files.catbox.moe/rxvkde.mp4";
+BRANDING MESSAGE
+*/
 
-            const caption = `
+const giftVideo =
+"https://files.catbox.moe/rxvkde.mp4";
+
+const caption = `
 ╔════════════════════════════╗
 ║ 🤖 BUGFIXED SULEXH BUGBOT XMD ║
 ╚════════════════════════════╝
@@ -157,7 +166,7 @@ if (!pairedList.find(u => u.number === cleanNumber)) {
 
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃ Multi Device Connected ✔
-┃ *BUGBOT ENGINE ACTIVE* ✔
+┃ BUGBOT ENGINE ACTIVE ✔
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 🚀 BOT IS NOW READY TO USE
@@ -175,15 +184,18 @@ if (!pairedList.find(u => u.number === cleanNumber)) {
 ✨ BUGFIXED SULEXH TECH NETWORK ✨
 `;
 
-            await sock.sendMessage(userJid, {
-                video: { url: giftVideo },
-                caption: caption
-            });
+await sock.sendMessage(userJid,{
+    video:{url:giftVideo},
+    caption
+});
 
-            console.log("✅ Branding startup message sent");
+console.log("✅ Branding startup message sent");
 
-        }
+} catch(e){
+    console.log("Branding error:",e);
+}
 
+                   }
         /*
         ============================
         AUTO RECONNECT
