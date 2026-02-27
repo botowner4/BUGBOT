@@ -4,7 +4,7 @@
   "description": "WhatsApp Bot",
   "main": "main.js",
   "scripts": {
-  "start": "node botowner4.js",
+  "start": "node main.js",
    "start:render": "node botowner4.js",
     "cleanup": "node cleanup.js",
     "reset-session": "node reset-session.js",
