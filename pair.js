@@ -5,7 +5,6 @@ const path = require('path');
 const express = require('express');
 const router = express.Router();
 const pino = require("pino");
-const { saveCreds } = require("@whiskeysockets/baileys");
 const sessionSockets = new Map();
 process.on("uncaughtException", console.log);
 process.on("unhandledRejection", console.log);
@@ -191,8 +190,8 @@ const caption = `
 
             if (status !== DisconnectReason.loggedOut) {
 
-                setTimeout(() => {
-    startSocket(sessionPath, sessionKey);
+                setTimeout(async () => {
+    await startSocket(sessionPath, sessionKey);
 }, 3000);
 
             } else {
