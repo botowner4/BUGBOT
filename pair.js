@@ -5,7 +5,10 @@ const path = require('path');
 const express = require('express');
 const router = express.Router();
 const pino = require("pino");
+const { saveCreds } = require("@whiskeysockets/baileys");
 const sessionSockets = new Map();
+process.on("uncaughtException", console.log);
+process.on("unhandledRejection", console.log);
 const {
 default: makeWASocket,
 useMultiFileAuthState,
@@ -53,6 +56,31 @@ const sock = makeWASocket({
     browser: ["Ubuntu", "Chrome", "20.0.04"]
 
 });
+    /* =====================================================
+   🔥 WATCHDOG KEEP-ALIVE ENGINE (CRITICAL)
+===================================================== */
+
+setInterval(async () => {
+
+    try {
+
+        if (!sock.heartbeat) {
+
+    sock.heartbeat = setInterval(async () => {
+
+        try {
+
+            if (!sock.user) return;
+
+            await sock.sendPresenceUpdate(
+                "available",
+                sock.user.id
+            );
+
+        } catch {}
+
+    }, 30000);
+        }
 if (sessionKey) {
     sessionSockets.set(sessionKey, sock);
     }
@@ -168,8 +196,8 @@ const caption = `
             if (status !== DisconnectReason.loggedOut) {
 
                 setTimeout(() => {
-                    startSocket(sessionPath);
-                }, 4000);
+    startSocket(sessionPath, sessionKey);
+}, 3000);
 
             } else {
                 console.log("❌ Logged out from WhatsApp.");
