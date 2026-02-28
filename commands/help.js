@@ -1,4 +1,4 @@
-st settings = require('../settings');
+const settings = require('../settings');
 const axios = require('axios');
 
 async function helpCommand(sock, chatId, message) {
@@ -6,9 +6,10 @@ async function helpCommand(sock, chatId, message) {
 const helpMessage = `
 ╔═══════════════════╗
    *🤖 ${settings.botName || 'BUGFIXED-SULEXH-XMD'}*  
-   Version: *${settings.version || '3.0.5'}*
+   Version: *${settings.version || '3.0.7'}*
    by ${settings.botOwner || 'BUGFIXED-SULEXH-TECH'}
    YT : BUGFIXED-SULEXH-TECH
+   MADE IN :Kenya, Tana River
 ╚═══════════════════╝
 
 *Available Commands*
