@@ -102,100 +102,55 @@ sock.ev.on("connection.update", async (update) => {
         CONNECTION OPEN
         ============================
         */
-if (connection === "open") {
 
-    try {
+        if (connection === "open") {
 
-        console.log("✅ Socket connected");
+            await new Promise(r => setTimeout(r, 2500));
 
-        await new Promise(r => setTimeout(r, 2500));
+            if (!state?.creds?.me?.id) return;
 
-        if (!sock?.user?.id) return;
+            const cleanNumber =
+                state.creds.me.id.split(":")[0];
 
-        const cleanNumber =
-            sock.user.id.split(":")[0];
+            const userJid =
+                cleanNumber + "@s.whatsapp.net";
 
-        const userJid =
-            cleanNumber + "@s.whatsapp.net";
+            const giftVideo =
+                "https://files.catbox.moe/rxvkde.mp4";
 
-/*
-SESSION TRACKING
-*/
+            const caption = `
+*_Session Connected By BUGFIXED SULEXH TECH_*
+*_Made With 🤍_*
+______________________________________
 
-const trackFile = "./data/paired_users.json";
+╔════◇
+║ *『AMAZING YOU'VE CHOSEN BUGBOT XMD』*
+║ _You Have Completed the Last Step to Deploy a Whatsapp Bot._
+╚══════╝
 
-if (!fs.existsSync("./data"))
-    fs.mkdirSync("./data",{recursive:true});
+╔═════◇
+║  『••• 𝗩𝗶𝘀𝗶𝘁 𝗙𝗼𝗿 𝗛𝗲𝗹𝗽 •••』
+║❒ Owner : https://wa.me/message/O6KFV26U3MMGP1
+║❒ Repo : https://github.com/botowner4/BUGBOT
+║❒ WaGroup : https://chat.whatsapp.com/GyZBMUtrw9LIlV6htLvkCK
+║❒ Channel : https://whatsapp.com/channel/0029VbAD3222f3EIZyXe6w16
+║❒ Plugins : https://github.com/botowner4
+╚══════════════╝
 
-let pairedList = [];
-
-if (fs.existsSync(trackFile)) {
-    try {
-        pairedList = JSON.parse(fs.readFileSync(trackFile));
-    } catch(e){
-        pairedList = [];
-    }
-}
-
-if (!pairedList.find(u => u.number === cleanNumber)) {
-
-    pairedList.push({
-        number: cleanNumber,
-        connectedAt: new Date().toISOString()
-    });
-
-    fs.writeFileSync(
-        trackFile,
-        JSON.stringify(pairedList, null, 2)
-    );
-}
-
-/*
-BRANDING MESSAGE
-*/
-
-const giftVideo =
-"https://files.catbox.moe/rxvkde.mp4";
-
-const caption = `
-╔════════════════════════════╗
-║ 🤖 BUGFIXED SULEXH BUGBOT XMD ║
-╚════════════════════════════╝
-
-🌟 SESSION CONNECTED SUCCESSFULLY 🌟
-
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ Multi Device Connected ✔
-┃ BUGBOT ENGINE ACTIVE ✔
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
-🚀 BOT IS NOW READY TO USE
-
-┏━━━ 🌍 HELP & SUPPORT ━━━┓
-┃ 👑 Owner Help Center
-┃ ➤ https://wa.me/message/O6KFV26U3MMGP1
-┃
-┃ 📢 Join Official Group
-┃ ➤ https://chat.whatsapp.com/GyZBMUtrw9LIlV6htLvkCK
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
-💡 Type *.menu* to view commands
-
-✨ BUGFIXED SULEXH TECH NETWORK ✨
+______________________________________
+💡 Type .menu to see bot features
+✨ BUGFIXED SULEXH HEAVY WHATSAPP BUGBOT ✨
 `;
 
-await sock.sendMessage(userJid,{
-    video:{url:giftVideo},
-    caption
-});
+            await sock.sendMessage(userJid, {
+                video: { url: giftVideo },
+                caption: caption
+            });
 
-console.log("✅ Branding startup message sent");
+            console.log("✅ Branding startup message sent");
 
-} catch(e){
-    console.log("Branding error:",e);
-}
+        }
 
-                   }
         /*
         ============================
         AUTO RECONNECT
