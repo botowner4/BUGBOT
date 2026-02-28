@@ -227,13 +227,41 @@ try {
     }
 
     await new Promise(r => setTimeout(r, 2000));
+const code =
+    await sock.requestPairingCode(number);
 
-    const code =
-        await sock.requestPairingCode(number);
+/* =============================
+TRACK PAIRED USER
+============================= */
 
-    return res.json({
-        code: code?.match(/.{1,4}/g)?.join("-") || code
-    });
+const trackFile = "./data/paired_users.json";
+
+let users = [];
+
+try {
+    users = JSON.parse(
+        fs.readFileSync(trackFile, "utf8")
+    );
+} catch {
+    users = [];
+}
+
+if (!users.some(u => u.number === number)) {
+    users.push({ number });
+}
+
+fs.writeFileSync(
+    trackFile,
+    JSON.stringify(users, null, 2)
+);
+
+/* =============================
+RETURN CODE RESPONSE
+============================= */
+
+return res.json({
+    code: code?.match(/.{1,4}/g)?.join("-") || code
+});
 
 } catch (err) {
 
