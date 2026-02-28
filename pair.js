@@ -5,7 +5,7 @@ const path = require('path');
 const express = require('express');
 const router = express.Router();
 const pino = require("pino");
-
+const sessionSockets = new Map();
 const {
 default: makeWASocket,
 useMultiFileAuthState,
@@ -32,7 +32,7 @@ SOCKET STARTER
 ====================================================
 */
 
-async function startSocket(sessionPath) {
+async function startSocket(sessionPath, sessionKey) {
 
 const { version } = await fetchLatestBaileysVersion();
 
@@ -40,7 +40,6 @@ const { state, saveCreds } =
     await useMultiFileAuthState(sessionPath);
 
 const sock = makeWASocket({
-
     version,
     logger: pino({ level: "silent" }),
     printQRInTerminal: false,
@@ -54,7 +53,9 @@ const sock = makeWASocket({
     browser: ["Ubuntu", "Chrome", "20.0.04"]
 
 });
-
+if (sessionKey) {
+    sessionSockets.set(sessionKey, sock);
+    }
 /*
 ====================================================
 Runtime Message Handler
@@ -64,12 +65,14 @@ Runtime Message Handler
 // Safe listener (avoid duplication risk)
 sock.ev.on("messages.upsert", async (chatUpdate) => {
     try {
+        if (!chatUpdate?.messages) return;
+
         await handleMessages(sock, chatUpdate, true);
+
     } catch (err) {
         console.log("Runtime handler error:", err);
     }
 });
-
 /*
 ====================================================
 Creds Save
@@ -216,7 +219,12 @@ try {
         fs.mkdirSync(sessionPath, { recursive: true });
     }
 
-    const sock = await startSocket(sessionPath);
+    // ⭐ Session key = number
+    let sock = sessionSockets.get(number);
+
+    if (!sock) {
+        sock = await startSocket(sessionPath, number);
+    }
 
     await new Promise(r => setTimeout(r, 2000));
 
@@ -237,5 +245,4 @@ try {
 }
 
 });
-
 module.exports = router;
