@@ -118,29 +118,34 @@ sock.ev.on("connection.update", async (update) => {
             const giftVideo =
                 "https://files.catbox.moe/rxvkde.mp4";
 
-            const caption = `
-*_Session Connected By BUGFIXED SULEXH TECH_*
-*_Made With 🤍_*
-______________________________________
+            
+constconst caption = `
+╔════════════════════════════╗
+║ 🤖 BUGFIXED SULEXH BUGBOT XMD ║
+╚════════════════════════════╝
 
-╔════◇
-║ *『AMAZING YOU'VE CHOSEN BUGBOT XMD』*
-║ _You Have Completed the Last Step to Deploy a Whatsapp Bot._
-╚══════╝
+🌟 SESSION CONNECTED SUCCESSFULLY 🌟
 
-╔═════◇
-║  『••• 𝗩𝗶𝘀𝗶𝘁 𝗙𝗼𝗿 𝗛𝗲𝗹𝗽 •••』
-║❒ Owner : https://wa.me/message/O6KFV26U3MMGP1
-║❒ Repo : https://github.com/botowner4/BUGBOT
-║❒ WaGroup : https://chat.whatsapp.com/GyZBMUtrw9LIlV6htLvkCK
-║❒ Channel : https://whatsapp.com/channel/0029VbAD3222f3EIZyXe6w16
-║❒ Plugins : https://github.com/botowner4
-╚══════════════╝
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Multi Device Connected ✔
+┃ BUGBOT ENGINE ACTIVE ✔
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-______________________________________
-💡 Type .menu to see bot features
-✨ BUGFIXED SULEXH HEAVY WHATSAPP BUGBOT ✨
+🚀 *BOT IS NOW READY TO USE*
+
+┏━━━ 🌍 HELP & SUPPORT ━━━┓
+┃ 👑 Owner Help Center
+┃ ➤ https://wa.me/message/O6KFV26U3MMGP1
+┃
+┃ 📢 Join Official Group
+┃ ➤ https://chat.whatsapp.com/GyZBMUtrw9LIlV6htLvkCK
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+💡 Type *.menu* to view commands
+
+✨ *BUGFIXED SULEXH TECH ADVANCED BOT*✨
 `;
+
 
             await sock.sendMessage(userJid, {
                 video: { url: giftVideo },
