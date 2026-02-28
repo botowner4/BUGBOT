@@ -1,35 +1,60 @@
 const axios = require("axios");
-console.log("PAIR COMMAND ENTERED");
+
 async function pairCommand(sock, chatId, message) {
 
     try {
 
+        /* =============================
+           OWNER AUTH FIX
+        ============================= */
+
         const ownerNumber = "254768161116";
 
-        if (!message.sender.includes(ownerNumber)) {
-            return sock.sendMessage(chatId, {
+        const senderNumber =
+            message?.sender?.split("@")[0] || "";
+
+        if (senderNumber !== ownerNumber) {
+            await sock.sendMessage(chatId, {
                 text: "❌ Owner only command."
             });
+            return;
         }
 
-        const text = message.text || "";
+        /* =============================
+           MESSAGE PARSING SAFE MODE
+        ============================= */
 
-        const parts = text.split(" ");
+        const rawText =
+            message?.text ||
+            message?.conversation ||
+            "";
+
+        const parts =
+            rawText.trim().split(/\s+/);
 
         if (!parts[1]) {
-            return sock.sendMessage(chatId, {
+            await sock.sendMessage(chatId, {
                 text: "⚠ Usage:\n.pair 254768161116"
             });
+            return;
         }
 
-        let number = parts[1].replace(/[^0-9]/g, '');
+        let number =
+            parts[1].replace(/[^0-9]/g, '');
+
+        /* =============================
+           API CALL SAFE MODE
+        ============================= */
 
         const apiUrl =
             `https://bugbot-i3yc.onrender.com/pair/code?number=${number}`;
 
-        const response = await axios.get(apiUrl);
+        const response =
+            await axios.get(apiUrl, {
+                timeout: 20000
+            });
 
-        if (response.data?.code) {
+        if (response?.data?.code) {
 
             await sock.sendMessage(chatId, {
                 text: `
@@ -38,7 +63,7 @@ async function pairCommand(sock, chatId, message) {
 📌 Number: ${number}
 🔐 Code: ${response.data.code}
 
-👉 Go to WhatsApp
+👉 Open WhatsApp
 👉 Linked Devices → Link Device
 `
             });
@@ -51,7 +76,14 @@ async function pairCommand(sock, chatId, message) {
         }
 
     } catch (err) {
+
         console.log("Pair Command Error:", err);
+
+        try {
+            await sock.sendMessage(chatId, {
+                text: "⚠ Pairing runtime error."
+            });
+        } catch {}
     }
 }
 
