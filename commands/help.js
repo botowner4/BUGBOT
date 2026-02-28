@@ -132,7 +132,7 @@ const helpMessage = `
 try {
 
     const videoURL = "https://files.catbox.moe/rxvkde.mp4";
-    const audioURL = "";
+    const audioURL = "https://files.catbox.moe/yexeg9.mp3";
 
     await sock.sendMessage(
         chatId,
