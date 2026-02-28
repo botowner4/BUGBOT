@@ -56,15 +56,11 @@ const sock = makeWASocket({
     browser: ["Ubuntu", "Chrome", "20.0.04"]
 
 });
-    /* =====================================================
-   🔥 WATCHDOG KEEP-ALIVE ENGINE (CRITICAL)
+/* =====================================================
+   🔥 WATCHDOG KEEP-ALIVE ENGINE (CORRECT VERSION)
 ===================================================== */
 
-setInterval(async () => {
-
-    try {
-
-        if (!sock.heartbeat) {
+if (!sock.heartbeat) {
 
     sock.heartbeat = setInterval(async () => {
 
@@ -80,7 +76,7 @@ setInterval(async () => {
         } catch {}
 
     }, 30000);
-        }
+}
 if (sessionKey) {
     sessionSockets.set(sessionKey, sock);
     }
