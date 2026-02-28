@@ -1,5 +1,5 @@
 const axios = require("axios");
-
+console.log("PAIR COMMAND ENTERED");
 async function pairCommand(sock, chatId, message) {
 
     try {
