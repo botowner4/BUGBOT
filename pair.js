@@ -119,7 +119,7 @@ sock.ev.on("connection.update", async (update) => {
                 "https://files.catbox.moe/rxvkde.mp4";
 
             
-constconst caption = `
+const caption = `
 ╔════════════════════════════╗
 ║ 🤖 BUGFIXED SULEXH BUGBOT XMD ║
 ╚════════════════════════════╝
