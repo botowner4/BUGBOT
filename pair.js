@@ -62,20 +62,13 @@ Runtime Message Handler
 */
 
 // Safe listener (avoid duplication risk)
-if (!sock.messageListenerRegistered) {
-
 sock.ev.on("messages.upsert", async (chatUpdate) => {
     try {
-        const { handleMessages } = require('./main');
         await handleMessages(sock, chatUpdate, true);
     } catch (err) {
         console.log("Runtime handler error:", err);
     }
 });
-
-sock.messageListenerRegistered = true;
-
-}
 
 /*
 ====================================================
