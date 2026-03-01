@@ -58,24 +58,23 @@ const sock = makeWASocket({
 /* =====================================================
    🔥 WATCHDOG KEEP-ALIVE ENGINE (CORRECT VERSION)
 ===================================================== */
-
 if (!sock.heartbeat) {
 
     sock.heartbeat = setInterval(async () => {
 
         try {
 
-            if (!sock.user) return;
+            if (!sock?.ws?.socket) return;
 
-            await sock.sendPresenceUpdate(
-                "available",
-                sock.user.id
-            );
+            if (sock.ws.socket.readyState !== 1) return;
+
+            await sock.sendPresenceUpdate("available");
 
         } catch {}
 
-    }, 30000);
+    }, 25000);
 }
+
 if (sessionKey) {
     sessionSockets.set(sessionKey, sock);
     }
@@ -282,8 +281,6 @@ const sock = await startSocket(sessionPath, number);
     await new Promise(r => setTimeout(r, 2000));
 const code =
     await sock.requestPairingCode(number);
-
-/
 /* =============================
 RETURN CODE RESPONSE
 ============================= */
