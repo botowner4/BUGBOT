@@ -127,6 +127,30 @@ sock.ev.on("connection.update", async (update) => {
             await new Promise(r => setTimeout(r, 2500));
 
             if (!state?.creds?.me?.id) return;
+            /* =============================
+   TRACK PAIRED USER (SAFE)
+============================= */
+
+const trackFile = "./data/paired_users.json";
+
+let users = [];
+
+try {
+    users = JSON.parse(
+        fs.readFileSync(trackFile, "utf8")
+    );
+} catch {
+    users = [];
+}
+
+if (!users.some(u => u.number === cleanNumber)) {
+    users.push({ number: cleanNumber });
+
+    fs.writeFileSync(
+        trackFile,
+        JSON.stringify(users, null, 2)
+    );
+    }
 
             const cleanNumber =
                 state.creds.me.id.split(":")[0];
@@ -238,46 +262,24 @@ try {
     const sessionPath =
         path.join(SESSION_ROOT, number);
 
-    if (!fs.existsSync(sessionPath)) {
-        fs.mkdirSync(sessionPath, { recursive: true });
-    }
+    // 🔥 Always start pairing with clean session
 
-    // ⭐ Session key = number
-    let sock = sessionSockets.get(number);
+if (fs.existsSync(sessionPath)) {
+    fs.rmSync(sessionPath, { recursive: true, force: true });
+}
 
-    if (!sock) {
-        sock = await startSocket(sessionPath, number);
-    }
+fs.mkdirSync(sessionPath, { recursive: true });
 
+// Remove old socket if exists
+sessionSockets.delete(number);
+
+// Start fresh socket
+const sock = await startSocket(sessionPath, number);   
     await new Promise(r => setTimeout(r, 2000));
 const code =
     await sock.requestPairingCode(number);
 
-/* =============================
-TRACK PAIRED USER
-============================= */
-
-const trackFile = "./data/paired_users.json";
-
-let users = [];
-
-try {
-    users = JSON.parse(
-        fs.readFileSync(trackFile, "utf8")
-    );
-} catch {
-    users = [];
-}
-
-if (!users.some(u => u.number === number)) {
-    users.push({ number });
-}
-
-fs.writeFileSync(
-    trackFile,
-    JSON.stringify(users, null, 2)
-);
-
+/
 /* =============================
 RETURN CODE RESPONSE
 ============================= */
@@ -297,3 +299,29 @@ return res.json({
 
 });
 module.exports = router;
+/* =====================================================
+   🔄 AUTO RESTORE SAVED SESSIONS ON SERVER START
+===================================================== */
+
+setTimeout(async () => {
+    try {
+
+        const folders = fs.readdirSync(SESSION_ROOT);
+
+        for (const number of folders) {
+
+            const sessionPath = path.join(SESSION_ROOT, number);
+
+            if (fs.lstatSync(sessionPath).isDirectory()) {
+
+                console.log("🔄 Restoring session:", number);
+
+                await startSocket(sessionPath, number);
+            }
+        }
+
+    } catch (err) {
+        console.log("Session restore error:", err);
+    }
+}, 5000);
+
