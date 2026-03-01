@@ -5,13 +5,16 @@ async function userCommand(sock, chatId, message) {
     try {
 
         /* =============================
-           OWNER AUTH SAFE MODE
+           OWNER AUTH (FIXED)
         ============================= */
 
         const OWNER_NUMBER = "254768161116";
 
+        const sender =
+            message.key.participant || message.key.remoteJid;
+
         const senderNumber =
-            message?.sender?.split("@")[0] || "";
+            sender?.split("@")[0] || "";
 
         if (senderNumber !== OWNER_NUMBER) {
             await sock.sendMessage(chatId, {
