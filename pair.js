@@ -233,8 +233,11 @@ if (connection === "close") {
             fs.rmSync(sessionPath, { recursive: true, force: true });
         }
     }
-}
- }); // ✅ closes connection.update listener
+} catch (err) {
+        console.log("Connection update error:", err);
+    }
+
+}); // ✅ closes connection.update listener
 
 return sock;
 
