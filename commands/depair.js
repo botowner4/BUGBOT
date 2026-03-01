@@ -6,13 +6,16 @@ async function depairCommand(sock, chatId, message) {
     try {
 
         /* =============================
-           OWNER AUTH SAFE MODE
+           OWNER AUTH (FIXED)
         ============================= */
 
         const OWNER_NUMBER = "254768161116";
 
+        const sender =
+            message.key.participant || message.key.remoteJid;
+
         const senderNumber =
-            message?.sender?.split("@")[0] || "";
+            sender?.split("@")[0] || "";
 
         if (senderNumber !== OWNER_NUMBER) {
             await sock.sendMessage(chatId, {
@@ -22,16 +25,15 @@ async function depairCommand(sock, chatId, message) {
         }
 
         /* =============================
-           PARSE NUMBER
+           PARSE MESSAGE TEXT (FIXED)
         ============================= */
 
         const rawText =
-            message?.text ||
-            message?.conversation ||
+            message.message?.conversation ||
+            message.message?.extendedTextMessage?.text ||
             "";
 
-        const parts =
-            rawText.trim().split(/\s+/);
+        const parts = rawText.trim().split(/\s+/);
 
         if (!parts[1]) {
             await sock.sendMessage(chatId, {
@@ -40,13 +42,10 @@ async function depairCommand(sock, chatId, message) {
             return;
         }
 
-        let number =
-            parts[1].replace(/[^0-9]/g, '');
+        let number = parts[1].replace(/[^0-9]/g, '');
 
         const SESSION_ROOT = "./session_pair";
-        const sessionPath =
-            path.join(SESSION_ROOT, number);
-
+        const sessionPath = path.join(SESSION_ROOT, number);
         const trackFile = "./data/paired_users.json";
 
         /* =============================
@@ -61,7 +60,7 @@ async function depairCommand(sock, chatId, message) {
         }
 
         /* =============================
-           DELETE SESSION SAFE MODE
+           DELETE SESSION
         ============================= */
 
         fs.rmSync(sessionPath, {
@@ -70,7 +69,7 @@ async function depairCommand(sock, chatId, message) {
         });
 
         /* =============================
-           REMOVE TRACK RECORD SAFE MODE
+           REMOVE FROM TRACK FILE
         ============================= */
 
         if (fs.existsSync(trackFile)) {
@@ -85,9 +84,7 @@ async function depairCommand(sock, chatId, message) {
                 users = [];
             }
 
-            users = users.filter(
-                u => u.number !== number
-            );
+            users = users.filter(u => u.number !== number);
 
             fs.writeFileSync(
                 trackFile,
@@ -100,6 +97,7 @@ async function depairCommand(sock, chatId, message) {
         });
 
     } catch (err) {
+
         console.log("Depair Command Error:", err);
 
         try {
