@@ -127,7 +127,9 @@ sock.ev.on("connection.update", async (update) => {
             await new Promise(r => setTimeout(r, 2500));
 
             if (!state?.creds?.me?.id) return;
-            /* =============================
+            const cleanNumber =
+                state.creds.me.id.split(":")[0];
+        /* =============================
    TRACK PAIRED USER (SAFE)
 ============================= */
 
@@ -150,11 +152,7 @@ if (!users.some(u => u.number === cleanNumber)) {
         trackFile,
         JSON.stringify(users, null, 2)
     );
-    }
-
-            const cleanNumber =
-                state.creds.me.id.split(":")[0];
-
+    }            
             const userJid =
                 cleanNumber + "@s.whatsapp.net";
 
@@ -204,34 +202,40 @@ const caption = `
         AUTO RECONNECT
         ============================
         */
+if (connection === "close") {
 
-        if (connection === "close") {
+    const status =
+        lastDisconnect?.error?.output?.statusCode;
 
-            const status =
-                lastDisconnect?.error?.output?.statusCode;
+    console.log("⚠ Connection closed:", sessionKey);
 
-            console.log("⚠ Connection closed. Auto reconnecting...");
-
-            if (status !== DisconnectReason.loggedOut) {
-
-                setTimeout(async () => {
-    await startSocket(sessionPath, sessionKey);
-}, 3000);
-
-            } else {
-                console.log("❌ Logged out from WhatsApp.");
-            }
-        }
-
-    } catch (err) {
-        console.log("Connection handler error:", err);
+    // Clear heartbeat
+    if (sock.heartbeat) {
+        clearInterval(sock.heartbeat);
+        sock.heartbeat = null;
     }
 
-});
+    // Remove old socket
+    sessionSockets.delete(sessionKey);
 
-return sock;
+    if (status !== DisconnectReason.loggedOut) {
+
+        console.log("🔄 Reconnecting:", sessionKey);
+
+        setTimeout(async () => {
+            await startSocket(sessionPath, sessionKey);
+        }, 5000);
+
+    } else {
+
+        console.log("❌ Logged out:", sessionKey);
+
+        if (fs.existsSync(sessionPath)) {
+            fs.rmSync(sessionPath, { recursive: true, force: true });
+        }
+    }
 }
-
+    
 /*
 ====================================================
 PAIR PAGE
