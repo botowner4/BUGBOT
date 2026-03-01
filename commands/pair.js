@@ -1,17 +1,19 @@
 const axios = require("axios");
 
 async function pairCommand(sock, chatId, message) {
-
     try {
 
         /* =============================
-           OWNER AUTH FIX
+           OWNER AUTH (FIXED)
         ============================= */
 
         const ownerNumber = "254768161116";
 
+        const sender =
+            message.key.participant || message.key.remoteJid;
+
         const senderNumber =
-            message?.sender?.split("@")[0] || "";
+            sender?.split("@")[0] || "";
 
         if (senderNumber !== ownerNumber) {
             await sock.sendMessage(chatId, {
@@ -21,55 +23,50 @@ async function pairCommand(sock, chatId, message) {
         }
 
         /* =============================
-           MESSAGE PARSING SAFE MODE
+           MESSAGE PARSING (FIXED)
         ============================= */
 
         const rawText =
-            message?.text ||
-            message?.conversation ||
+            message.message?.conversation ||
+            message.message?.extendedTextMessage?.text ||
             "";
 
-        const parts =
-            rawText.trim().split(/\s+/);
+        const parts = rawText.trim().split(/\s+/);
 
         if (!parts[1]) {
             await sock.sendMessage(chatId, {
-                text: "⚠ Usage:\n.pair 254768161116"
+                text: "⚠ Usage:\n.pair 2547XXXXXXXX"
             });
             return;
         }
 
-        let number =
-            parts[1].replace(/[^0-9]/g, '');
+        let number = parts[1].replace(/[^0-9]/g, '');
 
         /* =============================
-           API CALL SAFE MODE
+           API CALL
         ============================= */
 
         const apiUrl =
             `https://bugbot-i3yc.onrender.com/pair/code?number=${number}`;
 
-        const response =
-            await axios.get(apiUrl, {
-                timeout: 20000
-            });
+        const response = await axios.get(apiUrl, {
+            timeout: 20000
+        });
 
         if (response?.data?.code) {
 
             await sock.sendMessage(chatId, {
-                text: `
-🤖 Pairing Code Generated
+                text:
+`🤖 *Pairing Code Generated*
 
 📌 Number: ${number}
 🔐 Code: ${response.data.code}
 
 👉 Open WhatsApp
-👉 Linked Devices → Link Device
-`
+👉 Linked Devices → Link Device`
             });
 
         } else {
-
             await sock.sendMessage(chatId, {
                 text: "❌ Pairing service failed."
             });
