@@ -234,7 +234,11 @@ if (connection === "close") {
         }
     }
 }
-    
+ }); // ✅ closes connection.update listener
+
+return sock;
+
+} // ✅ closes startSocket function   
 /*
 ====================================================
 PAIR PAGE
