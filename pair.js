@@ -6,8 +6,10 @@ const express = require('express');
 const router = express.Router();
 const pino = require("pino");
 const sessionSockets = new Map();
+
 process.on("uncaughtException", console.log);
 process.on("unhandledRejection", console.log);
+
 const {
 default: makeWASocket,
 useMultiFileAuthState,
@@ -46,55 +48,44 @@ const sock = makeWASocket({
     logger: pino({ level: "silent" }),
     printQRInTerminal: false,
     keepAliveIntervalMs: 5000,
-
     auth: {
         creds: state.creds,
         keys: makeCacheableSignalKeyStore(state.keys)
     },
-
     browser: ["Ubuntu", "Chrome", "20.0.04"]
-
 });
-/* =====================================================
-   🔥 WATCHDOG KEEP-ALIVE ENGINE (CORRECT VERSION)
-===================================================== */
+
+/* WATCHDOG KEEP ALIVE */
+
 if (!sock.heartbeat) {
-
     sock.heartbeat = setInterval(async () => {
-
         try {
-
             if (!sock?.ws?.socket) return;
-
             if (sock.ws.socket.readyState !== 1) return;
-
             await sock.sendPresenceUpdate("available");
-
         } catch {}
-
     }, 25000);
 }
 
 if (sessionKey) {
     sessionSockets.set(sessionKey, sock);
-    }
+}
+
 /*
 ====================================================
 Runtime Message Handler
 ====================================================
 */
 
-// Safe listener (avoid duplication risk)
 sock.ev.on("messages.upsert", async (chatUpdate) => {
     try {
         if (!chatUpdate?.messages) return;
-
         await handleMessages(sock, chatUpdate, true);
-
     } catch (err) {
         console.log("Runtime handler error:", err);
     }
 });
+
 /*
 ====================================================
 Creds Save
@@ -126,40 +117,38 @@ sock.ev.on("connection.update", async (update) => {
             await new Promise(r => setTimeout(r, 2500));
 
             if (!state?.creds?.me?.id) return;
+
             const cleanNumber =
                 state.creds.me.id.split(":")[0];
-        /* =============================
-   TRACK PAIRED USER (SAFE)
-============================= */
 
-const trackFile = "./data/paired_users.json";
+            /* TRACK PAIRED USER */
 
-let users = [];
+            const trackFile = "./data/paired_users.json";
+            let users = [];
 
-try {
-    users = JSON.parse(
-        fs.readFileSync(trackFile, "utf8")
-    );
-} catch {
-    users = [];
-}
+            try {
+                users = JSON.parse(
+                    fs.readFileSync(trackFile, "utf8")
+                );
+            } catch {
+                users = [];
+            }
 
-if (!users.some(u => u.number === cleanNumber)) {
-    users.push({ number: cleanNumber });
+            if (!users.some(u => u.number === cleanNumber)) {
+                users.push({ number: cleanNumber });
+                fs.writeFileSync(
+                    trackFile,
+                    JSON.stringify(users, null, 2)
+                );
+            }
 
-    fs.writeFileSync(
-        trackFile,
-        JSON.stringify(users, null, 2)
-    );
-    }            
             const userJid =
                 cleanNumber + "@s.whatsapp.net";
 
             const giftVideo =
                 "https://files.catbox.moe/rxvkde.mp4";
 
-            
-const caption = `
+            const caption = `
 ╔════════════════════════════╗
 ║ 🤖 BUGFIXED SULEXH BUGBOT XMD ║
 ╚════════════════════════════╝
@@ -186,14 +175,12 @@ const caption = `
 ✨ *BUGFIXED SULEXH TECH ADVANCED BOT*✨
 `;
 
-
             await sock.sendMessage(userJid, {
                 video: { url: giftVideo },
                 caption: caption
             });
 
             console.log("✅ Branding startup message sent");
-
         }
 
         /*
@@ -201,47 +188,49 @@ const caption = `
         AUTO RECONNECT
         ============================
         */
-if (connection === "close") {
 
-    const status =
-        lastDisconnect?.error?.output?.statusCode;
+        if (connection === "close") {
 
-    console.log("⚠ Connection closed:", sessionKey);
+            const status =
+                lastDisconnect?.error?.output?.statusCode;
 
-    // Clear heartbeat
-    if (sock.heartbeat) {
-        clearInterval(sock.heartbeat);
-        sock.heartbeat = null;
-    }
+            console.log("⚠ Connection closed:", sessionKey);
 
-    // Remove old socket
-    sessionSockets.delete(sessionKey);
+            if (sock.heartbeat) {
+                clearInterval(sock.heartbeat);
+                sock.heartbeat = null;
+            }
 
-    if (status !== DisconnectReason.loggedOut) {
+            sessionSockets.delete(sessionKey);
 
-        console.log("🔄 Reconnecting:", sessionKey);
+            if (status !== DisconnectReason.loggedOut) {
 
-        setTimeout(async () => {
-            await startSocket(sessionPath, sessionKey);
-        }, 5000);
+                console.log("🔄 Reconnecting:", sessionKey);
 
-    } else {
+                setTimeout(async () => {
+                    await startSocket(sessionPath, sessionKey);
+                }, 5000);
 
-        console.log("❌ Logged out:", sessionKey);
+            } else {
 
-        if (fs.existsSync(sessionPath)) {
-            fs.rmSync(sessionPath, { recursive: true, force: true });
+                console.log("❌ Logged out:", sessionKey);
+
+                if (fs.existsSync(sessionPath)) {
+                    fs.rmSync(sessionPath, { recursive: true, force: true });
+                }
+            }
         }
-    }
-} catch (err) {
+
+    } catch (err) {
         console.log("Connection update error:", err);
     }
 
-}); // ✅ closes connection.update listener
+});
 
 return sock;
 
-} // ✅ closes startSocket function   
+}
+
 /*
 ====================================================
 PAIR PAGE
@@ -249,7 +238,7 @@ PAIR PAGE
 */
 
 router.get('/', (req, res) => {
-res.sendFile(process.cwd() + "/pair.html");
+    res.sendFile(process.cwd() + "/pair.html");
 });
 
 /*
@@ -272,29 +261,24 @@ try {
     const sessionPath =
         path.join(SESSION_ROOT, number);
 
-    // 🔥 Always start pairing with clean session
+    if (fs.existsSync(sessionPath)) {
+        fs.rmSync(sessionPath, { recursive: true, force: true });
+    }
 
-if (fs.existsSync(sessionPath)) {
-    fs.rmSync(sessionPath, { recursive: true, force: true });
-}
+    fs.mkdirSync(sessionPath, { recursive: true });
 
-fs.mkdirSync(sessionPath, { recursive: true });
+    sessionSockets.delete(number);
 
-// Remove old socket if exists
-sessionSockets.delete(number);
+    const sock = await startSocket(sessionPath, number);
 
-// Start fresh socket
-const sock = await startSocket(sessionPath, number);   
     await new Promise(r => setTimeout(r, 2000));
-const code =
-    await sock.requestPairingCode(number);
-/* =============================
-RETURN CODE RESPONSE
-============================= */
 
-return res.json({
-    code: code?.match(/.{1,4}/g)?.join("-") || code
-});
+    const code =
+        await sock.requestPairingCode(number);
+
+    return res.json({
+        code: code?.match(/.{1,4}/g)?.join("-") || code
+    });
 
 } catch (err) {
 
@@ -306,10 +290,14 @@ return res.json({
 }
 
 });
+
 module.exports = router;
-/* =====================================================
-   🔄 AUTO RESTORE SAVED SESSIONS ON SERVER START
-===================================================== */
+
+/*
+====================================================
+AUTO RESTORE SAVED SESSIONS
+====================================================
+*/
 
 setTimeout(async () => {
     try {
@@ -332,4 +320,3 @@ setTimeout(async () => {
         console.log("Session restore error:", err);
     }
 }, 5000);
-
