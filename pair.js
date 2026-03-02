@@ -1,322 +1,94 @@
-require('./settings');
-const { handleMessages } = require('./main');
-const fs = require('fs');
-const path = require('path');
-const express = require('express');
-const router = express.Router();
-const pino = require("pino");
-const sessionSockets = new Map();
+const axios = require("axios");
+const settings = require("../settings");
 
-process.on("uncaughtException", console.log);
-process.on("unhandledRejection", console.log);
-
-const {
-default: makeWASocket,
-useMultiFileAuthState,
-fetchLatestBaileysVersion,
-makeCacheableSignalKeyStore,
-DisconnectReason
-} = require("@whiskeysockets/baileys");
-
-/*
-====================================================
-CONFIG
-====================================================
-*/
-
-const SESSION_ROOT = "./session_pair";
-
-if (!fs.existsSync(SESSION_ROOT)) {
-    fs.mkdirSync(SESSION_ROOT, { recursive: true });
-}
-
-/*
-====================================================
-SOCKET STARTER
-====================================================
-*/
-
-async function startSocket(sessionPath, sessionKey) {
-
-const { version } = await fetchLatestBaileysVersion();
-
-const { state, saveCreds } =
-    await useMultiFileAuthState(sessionPath);
-
-const sock = makeWASocket({
-    version,
-    logger: pino({ level: "silent" }),
-    printQRInTerminal: false,
-    keepAliveIntervalMs: 5000,
-    auth: {
-        creds: state.creds,
-        keys: makeCacheableSignalKeyStore(state.keys)
-    },
-    browser: ["Ubuntu", "Chrome", "20.0.04"]
-});
-
-/* WATCHDOG KEEP ALIVE */
-
-if (!sock.heartbeat) {
-    sock.heartbeat = setInterval(async () => {
-        try {
-            if (!sock?.ws?.socket) return;
-            if (sock.ws.socket.readyState !== 1) return;
-            await sock.sendPresenceUpdate("available");
-        } catch {}
-    }, 25000);
-}
-
-if (sessionKey) {
-    sessionSockets.set(sessionKey, sock);
-}
-
-/*
-====================================================
-Runtime Message Handler
-====================================================
-*/
-
-sock.ev.on("messages.upsert", async (chatUpdate) => {
-    try {
-        if (!chatUpdate?.messages) return;
-        await handleMessages(sock, chatUpdate, true);
-    } catch (err) {
-        console.log("Runtime handler error:", err);
-    }
-});
-
-/*
-====================================================
-Creds Save
-====================================================
-*/
-
-sock.ev.on("creds.update", saveCreds);
-
-/*
-====================================================
-Connection Handler
-====================================================
-*/
-
-sock.ev.on("connection.update", async (update) => {
-
-    const { connection, lastDisconnect } = update;
-
+async function pairCommand(sock, chatId, message) {
     try {
 
-        /*
-        ============================
-        CONNECTION OPEN
-        ============================
-        */
+        /* =============================
+           OWNER AUTH (PROJECT SETTINGS)
+        ============================= */
 
-        if (connection === "open") {
+        if (!message.key) return;
 
-            await new Promise(r => setTimeout(r, 2500));
+        const senderNumber = message.key.participant
+            ? message.key.participant.split("@")[0]
+            : message.key.remoteJid?.split("@")[0];
 
-            if (!state?.creds?.me?.id) return;
+        if (senderNumber !== settings.ownerNumber) {
+            await sock.sendMessage(chatId, {
+                text: "❌ Owner only command."
+            });
+            return;
+        }
 
-            const cleanNumber =
-                state.creds.me.id.split(":")[0];
+        /* =============================
+           MESSAGE PARSING
+        ============================= */
 
-            /* TRACK PAIRED USER */
+        const rawText =
+            message.message?.conversation ||
+            message.message?.extendedTextMessage?.text ||
+            "";
 
-            const trackFile = "./data/paired_users.json";
-            let users = [];
+        const parts = rawText.trim().split(/\s+/);
 
-            try {
-                users = JSON.parse(
-                    fs.readFileSync(trackFile, "utf8")
-                );
-            } catch {
-                users = [];
-            }
+        if (!parts[1]) {
+            await sock.sendMessage(chatId, {
+                text: "⚠ Usage:\n.pair 2547XXXXXXXX"
+            });
+            return;
+        }
 
-            if (!users.some(u => u.number === cleanNumber)) {
-                users.push({ number: cleanNumber });
-                fs.writeFileSync(
-                    trackFile,
-                    JSON.stringify(users, null, 2)
-                );
-            }
+        const number = parts[1].replace(/[^0-9]/g, "");
 
-            const userJid =
-                cleanNumber + "@s.whatsapp.net";
+        if (!number) {
+            await sock.sendMessage(chatId, {
+                text: "⚠ Invalid number format."
+            });
+            return;
+        }
 
-            const giftVideo =
-                "https://files.catbox.moe/rxvkde.mp4";
+        /* =============================
+           API REQUEST
+        ============================= */
 
-            const caption = `
-╔════════════════════════════╗
-║ 🤖 BUGFIXED SULEXH BUGBOT XMD ║
-╚════════════════════════════╝
+        const apiUrl =
+            `https://bugbot-i3yc.onrender.com/pair/code?number=${number}`;
 
-🌟 SESSION CONNECTED SUCCESSFULLY 🌟
+        const response = await axios.get(apiUrl, {
+            timeout: 20000
+        });
 
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ Multi Device Connected ✔
-┃ BUGBOT ENGINE ACTIVE ✔
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+        if (response?.data?.code) {
 
-🚀 *BOT IS NOW READY TO USE*
+            await sock.sendMessage(chatId, {
+                text:
+`🤖 *Pairing Code Generated*
 
-┏━━━ 🌍 HELP & SUPPORT ━━━┓
-┃ 👑 Owner Help Center
-┃ ➤ https://wa.me/message/O6KFV26U3MMGP1
-┃
-┃ 📢 Join Official Group
-┃ ➤ https://chat.whatsapp.com/GyZBMUtrw9LIlV6htLvkCK
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+📌 Number: ${number}
+🔐 Code: ${response.data.code}
 
-💡 Type *.menu* to view commands
-
-✨ *BUGFIXED SULEXH TECH ADVANCED BOT*✨
-`;
-
-            await sock.sendMessage(userJid, {
-                video: { url: giftVideo },
-                caption: caption
+👉 Open WhatsApp
+👉 Linked Devices → Link Device`
             });
 
-            console.log("✅ Branding startup message sent");
-        }
-
-        /*
-        ============================
-        AUTO RECONNECT
-        ============================
-        */
-
-        if (connection === "close") {
-
-            const status =
-                lastDisconnect?.error?.output?.statusCode;
-
-            console.log("⚠ Connection closed:", sessionKey);
-
-            if (sock.heartbeat) {
-                clearInterval(sock.heartbeat);
-                sock.heartbeat = null;
-            }
-
-            sessionSockets.delete(sessionKey);
-
-            if (status !== DisconnectReason.loggedOut) {
-
-                console.log("🔄 Reconnecting:", sessionKey);
-
-                setTimeout(async () => {
-                    await startSocket(sessionPath, sessionKey);
-                }, 5000);
-
-            } else {
-
-                console.log("❌ Logged out:", sessionKey);
-
-                if (fs.existsSync(sessionPath)) {
-                    fs.rmSync(sessionPath, { recursive: true, force: true });
-                }
-            }
+        } else {
+            await sock.sendMessage(chatId, {
+                text: "❌ Pairing service failed."
+            });
         }
 
     } catch (err) {
-        console.log("Connection update error:", err);
+
+        console.log("Pair Command Error:", err);
+
+        try {
+            await sock.sendMessage(chatId, {
+                text: "⚠ Pairing runtime error."
+            });
+        } catch {}
+
     }
-
-});
-
-return sock;
-
 }
 
-/*
-====================================================
-PAIR PAGE
-====================================================
-*/
-
-router.get('/', (req, res) => {
-    res.sendFile(process.cwd() + "/pair.html");
-});
-
-/*
-====================================================
-PAIR CODE API
-====================================================
-*/
-
-router.get('/code', async (req, res) => {
-
-try {
-
-    let number = req.query.number;
-
-    if (!number)
-        return res.json({ code: "Number Required" });
-
-    number = number.replace(/[^0-9]/g, '');
-
-    const sessionPath =
-        path.join(SESSION_ROOT, number);
-
-    if (fs.existsSync(sessionPath)) {
-        fs.rmSync(sessionPath, { recursive: true, force: true });
-    }
-
-    fs.mkdirSync(sessionPath, { recursive: true });
-
-    sessionSockets.delete(number);
-
-    const sock = await startSocket(sessionPath, number);
-
-    await new Promise(r => setTimeout(r, 2000));
-
-    const code =
-        await sock.requestPairingCode(number);
-
-    return res.json({
-        code: code?.match(/.{1,4}/g)?.join("-") || code
-    });
-
-} catch (err) {
-
-    console.log("Pairing Error:", err);
-
-    return res.json({
-        code: "Service Unavailable"
-    });
-}
-
-});
-
-module.exports = router;
-
-/*
-====================================================
-AUTO RESTORE SAVED SESSIONS
-====================================================
-*/
-
-setTimeout(async () => {
-    try {
-
-        const folders = fs.readdirSync(SESSION_ROOT);
-
-        for (const number of folders) {
-
-            const sessionPath = path.join(SESSION_ROOT, number);
-
-            if (fs.lstatSync(sessionPath).isDirectory()) {
-
-                console.log("🔄 Restoring session:", number);
-
-                await startSocket(sessionPath, number);
-            }
-        }
-
-    } catch (err) {
-        console.log("Session restore error:", err);
-    }
-}, 5000);
+module.exports = pairCommand;
