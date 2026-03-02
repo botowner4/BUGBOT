@@ -1,79 +1,67 @@
-const { exec } = require('child_process');
-const fs = require('fs');
-const path = require('path');
-const isOwnerOrSudo = require('../lib/isOwner');
+const { exec } = require("child_process");
+const isOwnerOrSudo = require("../lib/isOwner");
+const settings = require("../settings");
+
+let updating = false;
 
 function run(cmd) {
     return new Promise((resolve, reject) => {
-        exec(cmd, (err, stdout, stderr) => {
-            if (err) return reject(stderr || err.message);
+        exec(cmd, (err, stdout) => {
+            if (err) return reject(err.message);
             resolve(stdout);
         });
     });
 }
-
-function clearModuleCache(folder) {
-    const fullPath = path.join(process.cwd(), folder);
-
-    if (!fs.existsSync(fullPath)) return 0;
-
-    let count = 0;
-
-    fs.readdirSync(fullPath).forEach(file => {
-        const filePath = path.join(fullPath, file);
-
-        if (file.endsWith('.js')) {
-            try {
-                delete require.cache[require.resolve(filePath)];
-                require(filePath);
-                count++;
-            } catch (e) {
-                console.log("Reload error:", e);
-            }
-        }
-    });
-
-    return count;
-}
-
-let updating = false;
 
 async function updateCommand(sock, chatId, message) {
 
     if (updating) return;
     updating = true;
 
-    const senderId = message.key.participant || message.key.remoteJid;
-    const isOwner = await isOwnerOrSudo(senderId, sock, chatId);
-
-    if (!message.key.fromMe && !isOwner) {
-        await sock.sendMessage(chatId, { text: "Only owner can use .update" }, { quoted: message });
-        updating = false;
-        return;
-    }
-
     try {
 
-        await sock.sendMessage(chatId, { text: "🔄 Pulling latest update..." }, { quoted: message });
+        const senderId =
+            message.key.participant ||
+            message.key.remoteJid;
 
-        await run("git fetch --all");
-        await run("git reset --hard origin/main");
+        const isOwner = await isOwnerOrSudo(senderId, sock, chatId);
 
-        await sock.sendMessage(chatId, { text: "♻ Reloading commands..." }, { quoted: message });
-
-        const reloaded = clearModuleCache("commands");
+        if (!message.key.fromMe && !isOwner) {
+            await sock.sendMessage(chatId, {
+                text: "❌ Owner only command."
+            });
+            updating = false;
+            return;
+        }
 
         await sock.sendMessage(chatId, {
-            text: `✅ Update complete!\n\nReloaded files: ${reloaded}\nNo restart needed.`
-        }, { quoted: message });
+            text: "🔄 Checking GitHub updates..."
+        });
+
+        // Git operations
+        const gitOutput = await run("git pull origin main");
+
+        await sock.sendMessage(chatId, {
+            text: "✅ Update pulled successfully\n\n📄 Changes:\n" + gitOutput
+        });
+
+        // 🔥 Trigger Render redeploy (BEST PRACTICE)
+        if (settings.updateDeployHook) {
+            const axios = require("axios");
+            await axios.post(settings.updateDeployHook);
+        }
+
+        await sock.sendMessage(chatId, {
+            text: "♻ Bot restarting with latest features..."
+        });
 
     } catch (err) {
 
-        console.error(err);
+        console.log(err);
 
         await sock.sendMessage(chatId, {
-            text: "❌ Update failed:\n" + String(err)
-        }, { quoted: message });
+            text: "❌ Update error:\n" + err
+        });
 
     }
 
