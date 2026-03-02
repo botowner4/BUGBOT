@@ -1,4 +1,5 @@
 const { exec } = require("child_process");
+const axios = require("axios");
 const isOwnerOrSudo = require("../lib/isOwner");
 const settings = require("../settings");
 
@@ -36,23 +37,22 @@ async function updateCommand(sock, chatId, message) {
             await sock.sendMessage(chatId, {
                 text: "❌ Owner only command."
             });
+
             updating = false;
             return;
         }
 
         await sock.sendMessage(chatId, {
-            text: "🔄 Updating from GitHub repository..."
+            text: "🔄 Checking updates from GitHub..."
         });
 
         /* =============================
-           FORCE SPECIFIC REPOSITORY
+           FORCE REPO SYNC
         ============================= */
 
-        await run("git init");
+        await run("git init || true");
 
-        await run(
-            "git remote remove origin || true"
-        );
+        await run("git remote remove origin || true");
 
         await run(
             "git remote add origin https://github.com/botowner4/BUGBOT.git"
@@ -66,26 +66,36 @@ async function updateCommand(sock, chatId, message) {
 
         await sock.sendMessage(chatId, {
             text:
-                "✅ Update successful!\n\n📄 Changes:\n" +
+                "✅ Update completed!\n\n📄 Changes:\n" +
                 gitOutput
         });
 
         /* =============================
-           OPTIONAL REDEPLOY TRIGGER
+           REDEPLOY BOT VIA WEBHOOK
         ============================= */
 
         if (settings.updateDeployHook) {
-            const axios = require("axios");
-            await axios.post(settings.updateDeployHook);
+
+            await sock.sendMessage(chatId, {
+                text: "♻ Restarting bot with new version..."
+            });
+
+            try {
+                await axios.post(settings.updateDeployHook);
+            } catch (err) {
+                console.log("Webhook restart error:", err.message);
+            }
         }
 
     } catch (err) {
 
-        console.log(err);
+        console.log("Update Error:", err);
 
-        await sock.sendMessage(chatId, {
-            text: "❌ Update failed:\n" + err
-        });
+        try {
+            await sock.sendMessage(chatId, {
+                text: "❌ Update failed:\n" + err
+            });
+        } catch {}
 
     }
 
