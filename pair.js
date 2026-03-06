@@ -25,7 +25,7 @@ CONFIG
 ====================================================
 */
 
-const SESSION_ROOT = "./session_pair";
+const SESSION_ROOT = "./session";
 
 if (!fs.existsSync(SESSION_ROOT)) {
     fs.mkdirSync(SESSION_ROOT, { recursive: true });
