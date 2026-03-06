@@ -200,9 +200,10 @@ startSocket(sessionPath, sessionKey);
 
 console.log("❌ Logged out:", sessionKey);
 
-if (fs.existsSync(sessionPath)) {
-fs.rmSync(sessionPath, { recursive: true, force: true });
+if (!fs.existsSync(sessionPath)) {
+fs.mkdirSync(sessionPath, { recursive: true });
 }
+
 }
 }
 
