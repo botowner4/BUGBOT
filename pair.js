@@ -6,9 +6,9 @@ const { handleMessages } = require('./main');
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
-
 const router = express.Router();
 const pino = require("pino");
+const PQueue = require("p-queue");
 
 const sessionSockets = new Map();
 
@@ -31,7 +31,44 @@ if (!fs.existsSync(SESSION_ROOT)) {
     fs.mkdirSync(SESSION_ROOT, { recursive: true });
 }
 
-/* SOCKET STARTER */
+/* ====================================================
+   SAFE MESSAGE QUEUE ENGINE
+==================================================== */
+
+const sendQueue = new PQueue({
+    concurrency: 2,
+    interval: 800,
+    intervalCap: 5
+});
+
+async function safeSend(sock, jid, msg, options = {}) {
+    return sendQueue.add(async () => {
+        try {
+
+            if (!sock?.ws?.socket) return false;
+
+            if (sock.ws.socket.readyState !== 1) return false;
+
+            return await sock.sendMessage(jid, msg, options);
+
+        } catch (err) {
+
+            if (
+                err?.output?.statusCode === 428 ||
+                err?.message?.includes("Connection Closed")
+            ) {
+                return false;
+            }
+
+            console.log("Send error:", err.message);
+            return false;
+        }
+    });
+}
+
+/* ====================================================
+ SOCKET STARTER
+==================================================== */
 
 async function startSocket(sessionPath, sessionKey) {
 
@@ -58,16 +95,21 @@ const sock = makeWASocket({
     browser: ["Ubuntu", "Chrome", "120.0.0"]
 });
 
-/* WATCHDOG KEEP ALIVE */
+/* WATCHDOG HEARTBEAT */
 
 sock.heartbeat = setInterval(async () => {
     try {
+
         if (!sock?.ws?.socket) return;
+
         if (sock.ws.socket.readyState !== 1) return;
 
         await sock.sendPresenceUpdate("available");
+
     } catch {}
-}, 25000);
+}, 18000);
+
+/* STORE SOCKET */
 
 sessionSockets.set(sessionKey, sock);
 
@@ -75,14 +117,17 @@ sessionSockets.set(sessionKey, sock);
 
 sock.ev.on("messages.upsert", async (chatUpdate) => {
     try {
+
         if (!chatUpdate?.messages) return;
+
         await handleMessages(sock, chatUpdate, true);
+
     } catch (err) {
-        console.log("Runtime handler error:", err);
+        console.log("Runtime handler error:", err.message);
     }
 });
 
-/* CREDS SAVE */
+/* SAVE CREDENTIALS */
 
 sock.ev.on("creds.update", saveCreds);
 
@@ -94,8 +139,6 @@ const { connection, lastDisconnect } = update;
 
 try {
 
-/* CONNECTION OPEN */
-
 if (connection === "open") {
 
 await new Promise(r => setTimeout(r, 2500));
@@ -105,33 +148,13 @@ if (!state?.creds?.me?.id) return;
 const cleanNumber =
 state.creds.me.id.split(":")[0];
 
-/* TRACK PAIRED USER */
-
-const trackFile = "./data/paired_users.json";
-let users = [];
-
-try {
-users = JSON.parse(fs.readFileSync(trackFile, "utf8"));
-} catch {
-users = [];
-}
-
-if (!users.some(u => u.number === cleanNumber)) {
-users.push({ number: cleanNumber });
-
-fs.writeFileSync(
-trackFile,
-JSON.stringify(users, null, 2)
-);
-}
-
 const userJid =
 cleanNumber + "@s.whatsapp.net";
 
-const giftVideo =
-"https://files.catbox.moe/rxvkde.mp4";
-
 /* BRANDING MESSAGE */
+
+const brandImage =
+"https://files.catbox.moe/ip70j9.jpg";
 
 const caption = `
 ╔════════════════════════════╗
@@ -145,23 +168,15 @@ const caption = `
 ┃ BUGBOT ENGINE ACTIVE ✔
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-🚀 *BOT IS NOW READY TO USE*
+🚀 BOT IS NOW READY TO USE
 
-┏━━━ 🌍 HELP & SUPPORT ━━━┓
-┃ 👑 Owner Help Center
-┃ ➤ https://wa.me/message/O6KFV26U3MMGP1
-┃
-┃ 📢 Join Official Group
-┃ ➤ https://chat.whatsapp.com/GyZBMUtrw9LIlV6htLvkCK
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+💡 Type *.menu*
 
-💡 Type *.menu* to view commands
-
-✨ *BUGFIXED SULEXH TECH ADVANCED BOT*✨
+✨ BUGFIXED SULEXH TECH ✨
 `;
 
-await sock.sendMessage(userJid, {
-video: { url: giftVideo },
+await safeSend(sock, userJid, {
+image: { url: brandImage },
 caption: caption
 });
 
@@ -174,8 +189,6 @@ if (connection === "close") {
 
 const status =
 lastDisconnect?.error?.output?.statusCode;
-
-console.log("⚠ Connection closed:", sessionKey);
 
 if (sock.heartbeat) {
 clearInterval(sock.heartbeat);
@@ -190,25 +203,18 @@ sessionSockets.delete(sessionKey);
 
 if (status !== DisconnectReason.loggedOut) {
 
-console.log("🔄 Reconnecting:", sessionKey);
+const delay =
+Math.floor(Math.random() * 8000) + 4000;
 
 setTimeout(() => {
 startSocket(sessionPath, sessionKey);
-}, 5000);
-
-} else {
-
-console.log("❌ Logged out:", sessionKey);
-
-if (!fs.existsSync(sessionPath)) {
-fs.mkdirSync(sessionPath, { recursive: true });
-}
+}, delay);
 
 }
 }
 
 } catch (err) {
-console.log("Connection update error:", err);
+console.log("Connection update error:", err.message);
 }
 
 });
@@ -286,7 +292,7 @@ if (fs.lstatSync(sessionPath).isDirectory()) {
 
 console.log("🔄 Restoring session:", number);
 
-await startSocket(sessionPath, number);
+startSocket(sessionPath, number);
 }
 }
 
