@@ -101,11 +101,12 @@ async function startSocket(sessionPath, sessionKey) {
             users = [];
         }
 
-        if (!users.some(u => u.number === cleanNumber)) {
-            users.push({
-                number: cleanNumber,
-                pairedAt: new Date().toISOString()
-            });
+        if (!users.some(u => u.number === sessionKey)) {
+    users.push({
+        number: sessionKey,
+        pairedAt: new Date().toISOString()
+    });
+        }
 
             try {
                 const dataDir = path.dirname(trackFile);
@@ -117,9 +118,7 @@ async function startSocket(sessionPath, sessionKey) {
             } catch (error) {
                 console.log("Error saving paired users file:", error.message);
             }
-        }
-
-        const userJid = cleanNumber + "@s.whatsapp.net";
+        }      
         const image = "https://files.catbox.moe/ip70j9.jpg";
 
         /* ENHANCED BRANDING MESSAGE */
