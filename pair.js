@@ -13,7 +13,8 @@ const {
     useMultiFileAuthState,
     fetchLatestBaileysVersion,
     makeCacheableSignalKeyStore,
-    MessageRetryMap
+    MessageRetryMap,
+    DisconnectReason
 } = require("@whiskeysockets/baileys");
 
 /* Stability Maps */
@@ -43,7 +44,7 @@ async function startSocket(sessionPath, sessionKey) {
 
         const { version } = await fetchLatestBaileysVersion();
 
-        const { state } = await useMultiFileAuthState(sessionPath);
+        const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
 
         const sock = makeWASocket({
 
@@ -75,6 +76,65 @@ async function startSocket(sessionPath, sessionKey) {
             shouldSyncHistoryMessage: () => false
         });
 
+        /* SAVE CREDS */
+        sock.ev.on("creds.update", saveCreds);
+
+        /* CONNECTION EVENTS */
+        sock.ev.on("connection.update", async (update) => {
+
+            const { connection, lastDisconnect } = update;
+
+            if (connection === "open") {
+
+                console.log(`✅ ${sessionKey} Connected`);
+
+                socketHealthMap.set(sessionKey, {
+                    lastHeartbeat: Date.now(),
+                    status: 'connected'
+                });
+
+            }
+
+            if (connection === "close") {
+
+                const reason = lastDisconnect?.error?.output?.statusCode;
+
+                console.log(`⚠️ ${sessionKey} connection closed`);
+
+                if (reason !== DisconnectReason.loggedOut) {
+
+                    console.log(`🔄 Reconnecting ${sessionKey}...`);
+
+                    setTimeout(() => {
+                        startSocket(sessionPath, sessionKey);
+                    }, 5000);
+
+                } else {
+
+                    console.log(`🚫 Session logged out ${sessionKey}`);
+                }
+            }
+
+        });
+
+        /* SOCKET HEALTH MONITOR */
+        setInterval(() => {
+
+            const health = socketHealthMap.get(sessionKey);
+
+            if (!sock?.ws || sock.ws.readyState !== 1) {
+
+                console.log(`⚠️ Socket unhealthy for ${sessionKey}`);
+                startSocket(sessionPath, sessionKey);
+
+            }
+
+            if (health) {
+                health.lastHeartbeat = Date.now();
+            }
+
+        }, 30000);
+
         const userJid = sessionKey + "@s.whatsapp.net";
 
         /* ===== TRACK PAIRED USERS ===== */
@@ -86,7 +146,6 @@ async function startSocket(sessionPath, sessionKey) {
         try {
             if (fs.existsSync(trackFile)) {
                 const raw = fs.readFileSync(trackFile, "utf8").trim();
-
                 if (raw) users = JSON.parse(raw);
             }
         } catch {
@@ -126,7 +185,7 @@ async function startSocket(sessionPath, sessionKey) {
 
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃ ✅ Multi Device Connected
-┃ ✅ ENHANCED BUGBOT ENGINE ACTIVE
+┃ ✅ V10 BUGBOT ENGINE ACTIVE
 ┃ ✅ Whatsapp Crasher ON
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
@@ -137,7 +196,7 @@ async function startSocket(sessionPath, sessionKey) {
 
         try {
 
-            if (sock?.user || sock?.authState?.creds) {
+            if (sock?.user) {
                 await sock.sendMessage(userJid, {
                     image: { url: image },
                     caption: caption
@@ -147,11 +206,6 @@ async function startSocket(sessionPath, sessionKey) {
         } catch {
             await sock.sendMessage(userJid, { text: caption }).catch(() => {});
         }
-
-        socketHealthMap.set(sessionKey, {
-            lastHeartbeat: Date.now(),
-            status: 'connected'
-        });
 
         sessionSockets.set(sessionKey, sock);
 
@@ -199,7 +253,20 @@ router.get('/code', async (req, res) => {
                 error: true
             });
 
-        await new Promise(resolve => setTimeout(resolve, 7000));
+        /* WAIT UNTIL SOCKET IS READY */
+
+        await new Promise((resolve) => {
+
+            const check = setInterval(() => {
+
+                if (sock?.ws?.readyState === 1) {
+                    clearInterval(check);
+                    resolve();
+                }
+
+            }, 1000);
+
+        });
 
         const code = await sock.requestPairingCode(number);
 
