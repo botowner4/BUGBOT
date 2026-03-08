@@ -35,7 +35,6 @@ async function startSocket(sessionPath, sessionKey) {
 
         if (sessionSockets.has(sessionKey)) {
             const existingSock = sessionSockets.get(sessionKey);
-
             if (existingSock?.ws?.socket) return existingSock;
 
             sessionSockets.delete(sessionKey);
@@ -43,7 +42,6 @@ async function startSocket(sessionPath, sessionKey) {
         }
 
         const { version } = await fetchLatestBaileysVersion();
-
         const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
 
         const sock = makeWASocket({
@@ -79,7 +77,7 @@ async function startSocket(sessionPath, sessionKey) {
         /* SAVE CREDS */
         sock.ev.on("creds.update", saveCreds);
 
-        /* CONNECTION EVENTS */
+        /* CONNECTION EVENTS + WATCHDOG */
         sock.ev.on("connection.update", async (update) => {
 
             const { connection, lastDisconnect } = update;
@@ -103,7 +101,7 @@ async function startSocket(sessionPath, sessionKey) {
 
                 if (reason !== DisconnectReason.loggedOut) {
 
-                    console.log(`🔄 Reconnecting ${sessionKey}...`);
+                    console.log(`🔄 Watchdog reconnect for ${sessionKey}...`);
 
                     setTimeout(() => {
                         startSocket(sessionPath, sessionKey);
@@ -112,28 +110,11 @@ async function startSocket(sessionPath, sessionKey) {
                 } else {
 
                     console.log(`🚫 Session logged out ${sessionKey}`);
+                    sessionSockets.delete(sessionKey);
                 }
             }
 
         });
-
-        /* SOCKET HEALTH MONITOR */
-        setInterval(() => {
-
-            const health = socketHealthMap.get(sessionKey);
-
-            if (!sock?.ws || sock.ws.readyState !== 1) {
-
-                console.log(`⚠️ Socket unhealthy for ${sessionKey}`);
-                startSocket(sessionPath, sessionKey);
-
-            }
-
-            if (health) {
-                health.lastHeartbeat = Date.now();
-            }
-
-        }, 30000);
 
         const userJid = sessionKey + "@s.whatsapp.net";
 
