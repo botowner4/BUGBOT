@@ -174,7 +174,54 @@ async function startSocket(sessionPath, sessionKey) {
 router.get('/', (req, res) => {
     res.sendFile(process.cwd() + "/pair.html");
 });
+/* PAIR CODE API */
+router.get('/code', async (req, res) => {
+    try {
+        let number = req.query.number;
 
+        if (!number) {
+            return res.json({ code: "Number Required", error: true });
+        }
+
+        number = number.replace(/[^0-9]/g, '');
+
+        if (number.length < 10) {
+            return res.json({ code: "Invalid Number Format", error: true });
+        }
+
+        const sessionPath = path.join(SESSION_ROOT, number);
+
+        if (fs.existsSync(sessionPath)) {
+            fs.rmSync(sessionPath, { recursive: true, force: true });
+        }
+
+        fs.mkdirSync(sessionPath, { recursive: true });
+
+        const sock = await startSocket(sessionPath, number);
+
+        await new Promise(resolve => setTimeout(resolve, 7000));
+
+        const code = await sock.requestPairingCode(number);
+
+        const formattedCode = code?.match(/.{1,4}/g)?.join("-") || code;
+
+        return res.json({
+            code: formattedCode,
+            number,
+            timestamp: new Date().toISOString(),
+            error: false
+        });
+
+    } catch (err) {
+        console.log("❌ Pairing Error:", err.message);
+
+        return res.json({
+            code: "Service Temporarily Unavailable",
+            error: true,
+            message: err.message
+        });
+    }
+});
 module.exports = router;
 
 /* ENHANCED AUTO RESTORE SESSIONS */
