@@ -21,11 +21,7 @@ process.on("uncaughtException", (error) => {
 });
 
 process.on("unhandledRejection", (reason, promise) => {
-     for your request are empty:
-
-1. Goal or Objective: ""
-2. Programming Language or Framework: ""
-
+     
 To provide you with theconsole.log("Unhandled Rejection at:", promise, "reason:", reason);
     // Continue execution for better uptime
 });
