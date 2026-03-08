@@ -86,13 +86,8 @@ async function startSocket(sessionPath, sessionKey) {
                 maxChunkSize: 1024 * 1024 * 5
             }
         });
-
-        const cleanNumber = sessionKey;
-
-        const userJid = cleanNumber + "@s.whatsapp.net";
-
-        const cleanNumber = state.creds.me.id.split(":")[0];
-
+        const userJid = sessionKey + "@s.whatsapp.net";
+        
         /* TRACK PAIRED USER */
         const trackFile = "./data/paired_users.json";
         let users = [];
