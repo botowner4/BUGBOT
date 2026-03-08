@@ -2,198 +2,196 @@ const settings = require('../settings');
 const axios = require('axios');
 
 async function helpCommand(sock, chatId, message) {
+  try {
+    const startTime = Date.now();
 
-try {
+    // ===== SAFE LOADER =====
+    await sock.sendMessage(chatId, {
+      text: "🐉 BUGBOT SYSTEM BOOTING...\n⚡ Loading Ultimum Destroyer Menu..."
+    }, { quoted: message });
 
-const startTime = Date.now();
+    // ===== META DATA =====
+    const imageURL = "https://files.catbox.moe/ip70j9.jpg";
 
-// ===== BUGFIXED SAFE LOADER =====
-await sock.sendMessage(chatId, {
-text: "🧠 BUGBOT MODE ACTIVE...\n⚡ Loading Advanced AI Interface..."
-}, { quoted: message });
+    const runtime = ((Date.now() - startTime) / 1000).toFixed(2) + "s";
+    const ping = Date.now() - startTime + "ms";
 
-// ===== META DATA =====
-const videoURL = "https://files.catbox.moe/rxvkde.mp4";
-const audioURL = "https://files.catbox.moe/yexeg9.mp3";
+    // ===== MENU CONTENT =====
+    const helpMessage = `
+╔════════════════════════════════════╗
+🐉 BUGFIXED SULEXH TECH BOT V10
+🌌  NEVER USE HARM OTHERS🤖🤖☠️☠️
+╚════════════════════════════════════╝
 
-const runtime = ((Date.now() - startTime) / 1000).toFixed(2) + "s";
-const ping = Date.now() - startTime + "ms";
-
-// ===== BUGFIXED MENU ENGINE =====
-const helpMessage = `
-╭════════════════════╮
-👑 BUGBOT RUNNING ENGINE
-────────────────────
-
-🤖 Bot : ${settings.botName || "BUGBOT-XMD"}
-⭐ Owner : ${settings.botOwner || "BUGFIXED TECH"}
+👤 User : ${message.pushName || "User"}
+🤖 Bot  : ${settings.botName || "BUGBOT V10"}
+⭐ Owner: ${settings.botOwner || "BUGFIXED SULEXH TECH"}
 
 ⚡ Runtime : ${runtime}
 📡 Ping : ${ping}
-🌍 Version : ${settings.version || "3.0.7"}
-╚═══════════════════╝
+────────────────────────────
 
-*Available Commands*
+▛▀ GENERAL MENU ▀▜
+▌ .help
+▌ .menu
+▌ .alive
+▌ .ping
+▌ .owner
+▌ .fact
+▌ .joke
+▌ .quote
+▌ .weather <city>
+▌ .news
+▌ .tts <text>
+▌ .attp <text>
+▌ .lyrics <song_title>
+▌ .8ball <question>
+▌ .groupinfo
+▌ .staff / .admins
+▌ .vv
+▌ .v
+▌ .trt <text> <lang>
+▌ .ss <link>
+▌ .jid
+▌ .url
+▌ .quran menu
+▌ .BUG MENU (premium)
+▙▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
 
-╔═══════════════════╗
-🌐 *General Commands*
-║ ➤ .help / .menu
-║ ➤ .ping
-║ ➤ .alive
-║ ➤ .tts <text>
-║ ➤ .owner
-║ ➤ .joke
-║ ➤ .quote
-║ ➤ .fact
-║ ➤ .weather <city>
-║ ➤ .news
-║ ➤ .attp <text>
-║ ➤ .lyrics <song_title>
-║ ➤ .8ball <question>
-║ ➤ .groupinfo
-║ ➤ .staff / .admins
-║ ➤ .vv
-║ ➤ .v
-║ ➤ .trt <text> <lang>
-║ ➤ .ss <link>
-║ ➤ .jid
-║ ➤ .url
-║ ➤ .quran menu
-╚═══════════════════╝
+▛▀ ADMIN COMMANDS ▀▜
+▌ .ban @user
+▌ .promote @user
+▌ .demote @user
+▌ .mute <minutes>
+▌ .unmute
+▌ .delete / .del
+▌ .kick @user
+▌ .warnings @user
+▌ .warn @user
+▌ .antilink
+▌ .antibadword
+▌ .clear
+▌ .tag <message>
+▌ .tagall
+▌ .tagnotadmin
+▌ .hidetag <message>
+▌ .chatbot
+▌ .resetlink
+▌ .antitag <on/off>
+▌ .welcome <on/off>
+▌ .goodbye <on/off>
+▌ .setgdesc <description>
+▌ .setgname <new name>
+▌ .setgpp (reply to image)
+▙▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
 
-╔═══════════════════╗
-👮‍♂️ *Admin Commands*
-║ ➤ .ban @user
-║ ➤ .promote @user
-║ ➤ .demote @user
-║ ➤ .mute <minutes>
-║ ➤ .unmute
-║ ➤ .delete / .del
-║ ➤ .kick @user
-║ ➤ .warnings @user
-║ ➤ .warn @user
-║ ➤ .antilink
-║ ➤ .antibadword
-║ ➤ .clear
-║ ➤ .tag <message>
-║ ➤ .tagall
-║ ➤ .tagnotadmin
-║ ➤ .hidetag <message>
-║ ➤ .chatbot
-║ ➤ .resetlink
-║ ➤ .antitag <on/off>
-║ ➤ .welcome <on/off>
-║ ➤ .goodbye <on/off>
-║ ➤ .setgdesc <description>
-║ ➤ .setgname <new name>
-║ ➤ .setgpp (reply to image)
-╚═══════════════════╝
+▛▀ OWNER COMMANDS ▀▜
+▌ .mode <public/private>
+▌ .clearsession
+▌ .antidelete
+▌ .cleartmp
+▌ .update
+▌ .settings
+▌ .setpp <reply to image>
+▌ .autoreact <on/off>
+▌ .autostatus <on/off>
+▌ .autostatus react <on/off>
+▌ .autotyping <on/off>
+▌ .autorecording <on/off>
+▌ .alwaysonline <on/off>
+▌ .autoread <on/off>
+▌ .anticall <on/off>
+▌ .pmblocker <on/off/status>
+▌ .pmblocker setmsg <text>
+▌ .setmention <reply to msg>
+▌ .mention <on/off>
+▙▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
 
-╔═══════════════════╗
-🔒 *Owner Commands*
-║ ➤ .mode <public/private>
-║ ➤ .clearsession
-║ ➤ .antidelete
-║ ➤ .cleartmp
-║ ➤ .update
-║ ➤ .settings
-║ ➤ .setpp <reply to image>
-║ ➤ .autoreact <on/off>
-║ ➤ .autostatus <on/off>
-║ ➤ .autostatus react <on/off>
-║ ➤ .autotyping <on/off>
-║ ➤ .autorecording <on/off>
-║ ➤ .alwaysonline <on/off>
-║ ➤ .autoread <on/off>
-║ ➤ .anticall <on/off>
-║ ➤ .pmblocker <on/off/status>
-║ ➤ .pmblocker setmsg <text>
-║ ➤ .setmention <reply to msg>
-║ ➤ .mention <on/off>
-╚═══════════════════╝
+▛▀ BUGFIXED SULEXH COMMANDS ▀▜
+▌ .pair <number>
+▌ .user
+▌ .depair <number>
+▙▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
 
-╔═══════════════════╗
-🤖 *Bugfixed Sulexh Commands*
-║ ➤ .pair <number>
-║ ➤ .user
-║ ➤ .depair <number>
-╚═══════════════════╝
+▛▀ IMAGE & STICKER LAB ▀▜
+▌ .sticker
+▌ .simage
+▌ .blur
+▌ .removebg
+▌ .remini
+▌ .crop
+▌ .meme
+▌ .take <packname>
+▌ .emojimix <emj1>+<emj2>
+▌ .tgsticker <link>
+▌ .igs <insta link>
+▌ .igsc <insta link>
+▙▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
 
-╔═══════════════════╗
-🎨 *Image/Sticker Commands*
-║ ➤ .blur <image>
-║ ➤ .simage <reply to sticker>
-║ ➤ .sticker <reply to image>
-║ ➤ .removebg
-║ ➤ .remini
-║ ➤ .crop <reply to image>
-║ ➤ .tgsticker <link>
-║ ➤ .meme
-║ ➤ .take <packname>
-║ ➤ .emojimix <emj1>+<emj2>
-║ ➤ .igs <insta link>
-║ ➤ .igsc <insta link>
-╚═══════════════════╝
+▛▀ DOWNLOADERS ▀▜
+▌ .play <song_name>
+▌ .song <song_name>
+▌ .spotify <query>
+▌ .instagram <link>
+▌ .facebook <link>
+▌ .tiktok <link>
+▌ .video <song_name>
+▌ .ytmp4 <link>
+▌ .mediafire <link>
+▌ .apk <link>
+▙▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
 
-╔═══════════════════╗
-📥 *Downloader*
-║ ➤ .play <song_name>
-║ ➤ .song <song_name>
-║ ➤ .spotify <query>
-║ ➤ .instagram <link>
-║ ➤ .facebook <link>
-║ ➤ .tiktok <link>
-║ ➤ .video <song name>
-║ ➤ .ytmp4 <Link>
-╚═══════════════════╝
+▛▀ FUN GAME ZONE ▀▜
+▌ .truth
+▌ .dare
+▌ .riddle
+▌ .rate
+▌ .ship
+▌ .fact
+▌ .quote
+▙▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+
+▛▀ PREMIUM / SECRET ▀▜
+▌ BUG MENU
+▌ Flood Protection
+▌ Hidden BUG Engine
+▙▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+
+╔════════════════════════════════════╗
+👑 BUGFIXED SULEXH TECH
+⚡ BUGBOT V10 WHATSAPP CRASHER☠️☠️
+🚀 Future Bot Engineering
+╚════════════════════════════════════╝
 `;
 
-// ===== SEND BUGBOT MENU =====
-await sock.sendMessage(chatId, {
-video: { url: videoURL },
-caption: helpMessage,
-gifPlayback: true,
-footer: "👑 BUGFIXED SULEXH BUGBOT XMD",
-buttons: [
-{
-buttonId: "https://chat.whatsapp.com/GyZBMUtrw9LIlV6htLvkCK?mode=gi_t",
-buttonText: { displayText: "🔔 JOIN GROUP" },
-type: 1
-},
-{
-buttonId: "https://wa.me/254768161116",
-buttonText: { displayText: "👑 CONTACT OWNER" },
-type: 1
-}
-],
-headerType: 4,
-contextInfo: {
-mentionedJid: []
-}
-},
-{ quoted: message });
-// ===== BACKGROUND AUDIO =====
-const audio = await axios.get(
-"https://files.catbox.moe/yexeg9.mp3",
-{ responseType: "arraybuffer" }
-);
+    // ===== SEND IMAGE MENU =====
+    await sock.sendMessage(chatId, {
+      image: { url: imageURL },
+      caption: helpMessage,
+      footer: "👑 BUGFIXED SULEXH BOT",
+      buttons: [
+        {
+          buttonId: "https://chat.whatsapp.com/GyZBMUtrw9LIlV6htLvkCK",
+          buttonText: { displayText: "🔔 JOIN GROUP" },
+          type: 1
+        },
+        {
+          buttonId: "https://wa.me/254768161116",
+          buttonText: { displayText: "👑 CONTACT OWNER" },
+          type: 1
+        }
+      ],
+      headerType: 4,
+      contextInfo: { mentionedJid: [] }
+    }, { quoted: message });
 
-await sock.sendMessage(chatId, {
-audio: audio.data,
-mimetype: "audio/mpeg",
-ptt: false
-});
+  } catch (error) {
+    console.error("GOD MENU ERROR:", error);
 
-} catch (error) {
-
-console.error("BUGBOT MODE ERROR:", error);
-
-await sock.sendMessage(chatId, {
-text: "👑 BUGBOT MODE SAFE FALLBACK\nMenu loading failed."
-});
-
-}
-
+    await sock.sendMessage(chatId, {
+      text: "🐉 GOD MENU SYSTEM ERROR\nTry again later."
+    }, { quoted: message });
+  }
 }
 
 module.exports = helpCommand;
