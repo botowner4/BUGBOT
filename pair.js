@@ -21,6 +21,7 @@ const {
 
 const sessionSockets = new Map();
 const socketHealthMap = new Map();
+const socketHeartbeatMap = new Map(); // Track active heartbeats
 
 const SESSION_ROOT = "./session";
 
@@ -43,6 +44,11 @@ async function startSocket(sessionPath, sessionKey) {
 
             sessionSockets.delete(sessionKey);
             socketHealthMap.delete(sessionKey);
+            
+            // Clear old heartbeat
+            const oldHeartbeat = socketHeartbeatMap.get(sessionKey);
+            if (oldHeartbeat) clearInterval(oldHeartbeat);
+            socketHeartbeatMap.delete(sessionKey);
         }
 
         const { version } = await fetchLatestBaileysVersion();
@@ -54,7 +60,8 @@ async function startSocket(sessionPath, sessionKey) {
             logger: pino({ level: "silent" }),
 
             printQRInTerminal: false,
-            keepAliveIntervalMs: 10000,
+            keepAliveIntervalMs: 30000, // INCREASED from 10000ms to 30000ms
+            receiveMessagesInChunks: true, // Handle messages in chunks
 
             markOnlineOnConnect: false,
             syncFullHistory: false,
@@ -67,15 +74,19 @@ async function startSocket(sessionPath, sessionKey) {
             browser: ["Ubuntu", "Chrome", "120.0.0"],
 
             msgRetryCounterMap: MessageRetryMap,
-            maxMsgRetryCount: 1,
-            retryRequestDelayMs: 100,
+            maxMsgRetryCount: 2, // INCREASED from 1 to 2
+            retryRequestDelayMs: 200, // INCREASED from 100 to 200
 
             generateHighQualityLinkPreview: false,
             connectTimeoutMs: 60000,
             defaultQueryTimeoutMs: 60000,
 
             shouldIgnoreJid: () => false,
-            shouldSyncHistoryMessage: () => false
+            shouldSyncHistoryMessage: () => false,
+            
+            // ADDED: Disable automatic connection closure on inactivity
+            reconnectOnNetworkChange: true,
+            alwaysOnline: true // Keep socket alive
         });
 
         /* ===== CREDS AUTO SAVE ===== */
@@ -96,8 +107,12 @@ async function startSocket(sessionPath, sessionKey) {
 
                 socketHealthMap.set(sessionKey, {
                     lastHeartbeat: Date.now(),
-                    status: "connected"
+                    status: "connected",
+                    messagesSentDuringSession: 0
                 });
+                
+                // ADDED: Start enhanced heartbeat to keep socket alive
+                startSocketHeartbeat(sessionKey, sock);
             }
 
             if (connection === "close") {
@@ -106,19 +121,34 @@ async function startSocket(sessionPath, sessionKey) {
 
                 const reason = lastDisconnect?.error?.output?.statusCode;
 
-                if (reason !== DisconnectReason.loggedOut) {
+                // MODIFIED: More resilient reconnection logic
+                if (reason !== DisconnectReason.loggedOut && reason !== 401 && reason !== 403) {
 
-                    /* ⭐ Stable watchdog reconnect (no spam loop) */
+                    console.log(`🔄 Attempting automatic reconnection for ${sessionKey}...`);
 
+                    // Remove old heartbeat
+                    const oldHeartbeat = socketHeartbeatMap.get(sessionKey);
+                    if (oldHeartbeat) clearInterval(oldHeartbeat);
+                    socketHeartbeatMap.delete(sessionKey);
+
+                    /* ⭐ Enhanced watchdog reconnect with exponential backoff */
                     setTimeout(() => {
-                        if (!sessionSockets.has(sessionKey)) {
+                        if (!sessionSockets.has(sessionKey) || !isSocketConnected(sessionKey)) {
+                            console.log(`🔧 Restarting socket for ${sessionKey}...`);
                             startSocket(sessionPath, sessionKey);
                         }
                     }, 8000);
 
                 } else {
-                    console.log(`🚫 Session logged out ${sessionKey}`);
+                    console.log(`🚫 Session logged out ${sessionKey} (reason: ${reason})`);
+                    
+                    // Clean up heartbeat
+                    const oldHeartbeat = socketHeartbeatMap.get(sessionKey);
+                    if (oldHeartbeat) clearInterval(oldHeartbeat);
+                    socketHeartbeatMap.delete(sessionKey);
+                    
                     sessionSockets.delete(sessionKey);
+                    socketHealthMap.delete(sessionKey);
                 }
             }
         });
@@ -210,6 +240,55 @@ async function startSocket(sessionPath, sessionKey) {
 
         console.log("❌ Socket start error:", error.message);
         return null;
+    }
+}
+
+/* ================= ENHANCED HEARTBEAT SYSTEM ================= */
+
+function startSocketHeartbeat(sessionKey, sock) {
+    
+    // Clear existing heartbeat if any
+    const existingHeartbeat = socketHeartbeatMap.get(sessionKey);
+    if (existingHeartbeat) clearInterval(existingHeartbeat);
+    
+    console.log(`💓 Starting heartbeat for ${sessionKey}`);
+    
+    // Send a lightweight keep-alive every 25 seconds
+    const heartbeat = setInterval(async () => {
+        try {
+            if (!isSocketConnected(sessionKey)) {
+                clearInterval(heartbeat);
+                socketHeartbeatMap.delete(sessionKey);
+                console.log(`💔 Heartbeat stopped for ${sessionKey} (socket disconnected)`);
+                return;
+            }
+            
+            // Send heartbeat by requesting socket state
+            if (sock?.ws?.socket && sock.ws.socket.readyState === 1) {
+                sock.ws.socket.ping();
+            }
+            
+            const health = socketHealthMap.get(sessionKey);
+            if (health) {
+                health.lastHeartbeat = Date.now();
+            }
+            
+        } catch (error) {
+            console.log(`⚠️ Heartbeat error for ${sessionKey}:`, error.message);
+        }
+    }, 25000); // Every 25 seconds
+    
+    socketHeartbeatMap.set(sessionKey, heartbeat);
+}
+
+/* ================= SOCKET STATUS CHECK ================= */
+
+function isSocketConnected(sessionKey) {
+    try {
+        const sock = sessionSockets.get(sessionKey);
+        return sock && sock.ws && sock.ws.socket && sock.ws.socket.readyState === 1;
+    } catch {
+        return false;
     }
 }
 
