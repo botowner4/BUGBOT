@@ -105,9 +105,7 @@ async function startSocket(sessionPath, sessionKey) {
     users.push({
         number: sessionKey,
         pairedAt: new Date().toISOString()
-    });
-        }
-
+    });       
             try {
                 const dataDir = path.dirname(trackFile);
                 if (!fs.existsSync(dataDir)) {
