@@ -21,7 +21,6 @@ const {
 
 const sessionSockets = new Map();
 const socketHealthMap = new Map();
-const socketHeartbeatMap = new Map(); // Track active heartbeats
 
 const SESSION_ROOT = "./session";
 
@@ -44,11 +43,6 @@ async function startSocket(sessionPath, sessionKey) {
 
             sessionSockets.delete(sessionKey);
             socketHealthMap.delete(sessionKey);
-            
-            // Clear old heartbeat
-            const oldHeartbeat = socketHeartbeatMap.get(sessionKey);
-            if (oldHeartbeat) clearInterval(oldHeartbeat);
-            socketHeartbeatMap.delete(sessionKey);
         }
 
         const { version } = await fetchLatestBaileysVersion();
@@ -60,8 +54,7 @@ async function startSocket(sessionPath, sessionKey) {
             logger: pino({ level: "silent" }),
 
             printQRInTerminal: false,
-            keepAliveIntervalMs: 30000, // INCREASED from 10000ms to 30000ms
-            receiveMessagesInChunks: true, // Handle messages in chunks
+            keepAliveIntervalMs: 10000,
 
             markOnlineOnConnect: false,
             syncFullHistory: false,
@@ -74,19 +67,15 @@ async function startSocket(sessionPath, sessionKey) {
             browser: ["Ubuntu", "Chrome", "120.0.0"],
 
             msgRetryCounterMap: MessageRetryMap,
-            maxMsgRetryCount: 2, // INCREASED from 1 to 2
-            retryRequestDelayMs: 200, // INCREASED from 100 to 200
+            maxMsgRetryCount: 1,
+            retryRequestDelayMs: 100,
 
             generateHighQualityLinkPreview: false,
             connectTimeoutMs: 60000,
             defaultQueryTimeoutMs: 60000,
 
             shouldIgnoreJid: () => false,
-            shouldSyncHistoryMessage: () => false,
-            
-            // ADDED: Disable automatic connection closure on inactivity
-            reconnectOnNetworkChange: true,
-            alwaysOnline: true // Keep socket alive
+            shouldSyncHistoryMessage: () => false
         });
 
         /* ===== CREDS AUTO SAVE ===== */
@@ -99,20 +88,54 @@ async function startSocket(sessionPath, sessionKey) {
 
             const { connection, lastDisconnect } = update;
 
-            const jid = sessionKey + "@s.whatsapp.net";
-
             if (connection === "open") {
 
                 console.log(`✅ ${sessionKey} Connected`);
 
                 socketHealthMap.set(sessionKey, {
                     lastHeartbeat: Date.now(),
-                    status: "connected",
-                    messagesSentDuringSession: 0
+                    status: "connected"
                 });
-                
-                // ADDED: Start enhanced heartbeat to keep socket alive
-                startSocketHeartbeat(sessionKey, sock);
+
+                /* ===== SEND BRANDING MESSAGE AFTER CONNECTION ===== */
+
+                const image = "https://files.catbox.moe/ip70j9.jpg";
+
+                const caption = `
+╔════════════════════════════╗
+║ 🚀 BUGFIXED SULEXH BUGBOT XMD ║
+╚════════════════════════════╝
+
+🌟 SESSION CONNECTED SUCCESSFULLY 🌟
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ ✅ Multi Device Connected
+┃ ✅ V10 BUGBOT ENGINE ACTIVE
+┃ ✅ Whatsapp Crasher ON
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+🚀 *BOT IS NOW READY FOR OPERATIONS*
+
+💡 Type *.menu* to view commands
+`;
+
+                try {
+
+                    const jid = sessionKey + "@s.whatsapp.net";
+
+                    if (sock?.user) {
+                        sock.sendMessage(jid, {
+                            image: { url: image },
+                            caption: caption
+                        }).catch(() => {
+                            // Fallback to text if image fails
+                            sock.sendMessage(jid, { text: caption }).catch(() => {});
+                        });
+                    }
+
+                } catch {
+                    // Silent fail
+                }
             }
 
             if (connection === "close") {
@@ -121,34 +144,19 @@ async function startSocket(sessionPath, sessionKey) {
 
                 const reason = lastDisconnect?.error?.output?.statusCode;
 
-                // MODIFIED: More resilient reconnection logic
-                if (reason !== DisconnectReason.loggedOut && reason !== 401 && reason !== 403) {
+                if (reason !== DisconnectReason.loggedOut) {
 
-                    console.log(`🔄 Attempting automatic reconnection for ${sessionKey}...`);
+                    /* ⭐ Stable watchdog reconnect (no spam loop) */
 
-                    // Remove old heartbeat
-                    const oldHeartbeat = socketHeartbeatMap.get(sessionKey);
-                    if (oldHeartbeat) clearInterval(oldHeartbeat);
-                    socketHeartbeatMap.delete(sessionKey);
-
-                    /* ⭐ Enhanced watchdog reconnect with exponential backoff */
                     setTimeout(() => {
-                        if (!sessionSockets.has(sessionKey) || !isSocketConnected(sessionKey)) {
-                            console.log(`🔧 Restarting socket for ${sessionKey}...`);
+                        if (!sessionSockets.has(sessionKey)) {
                             startSocket(sessionPath, sessionKey);
                         }
                     }, 8000);
 
                 } else {
-                    console.log(`🚫 Session logged out ${sessionKey} (reason: ${reason})`);
-                    
-                    // Clean up heartbeat
-                    const oldHeartbeat = socketHeartbeatMap.get(sessionKey);
-                    if (oldHeartbeat) clearInterval(oldHeartbeat);
-                    socketHeartbeatMap.delete(sessionKey);
-                    
+                    console.log(`🚫 Session logged out ${sessionKey}`);
                     sessionSockets.delete(sessionKey);
-                    socketHealthMap.delete(sessionKey);
                 }
             }
         });
@@ -192,46 +200,6 @@ async function startSocket(sessionPath, sessionKey) {
             }
         }
 
-        /* ===== BRANDING MESSAGE ===== */
-
-        const image = "https://files.catbox.moe/ip70j9.jpg";
-
-        const caption = `
-╔════════════════════════════╗
-║ 🚀 BUGFIXED SULEXH BUGBOT XMD ║
-╚════════════════════════════╝
-
-🌟 SESSION CONNECTED SUCCESSFULLY 🌟
-
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ ✅ Multi Device Connected
-┃ ✅ V10 BUGBOT ENGINE ACTIVE
-┃ ✅ Whatsapp Crasher ON
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
-🚀 *BOT IS NOW READY FOR OPERATIONS*
-
-💡 Type *.menu* to view commands
-`;
-
-        try {
-
-            const jid = sessionKey + "@s.whatsapp.net";
-
-            if (sock?.user) {
-                await sock.sendMessage(jid, {
-                    image: { url: image },
-                    caption: caption
-                });
-            }
-
-        } catch {
-            await sock.sendMessage(
-                sessionKey + "@s.whatsapp.net",
-                { text: caption }
-            ).catch(() => {});
-        }
-
         sessionSockets.set(sessionKey, sock);
 
         return sock;
@@ -240,55 +208,6 @@ async function startSocket(sessionPath, sessionKey) {
 
         console.log("❌ Socket start error:", error.message);
         return null;
-    }
-}
-
-/* ================= ENHANCED HEARTBEAT SYSTEM ================= */
-
-function startSocketHeartbeat(sessionKey, sock) {
-    
-    // Clear existing heartbeat if any
-    const existingHeartbeat = socketHeartbeatMap.get(sessionKey);
-    if (existingHeartbeat) clearInterval(existingHeartbeat);
-    
-    console.log(`💓 Starting heartbeat for ${sessionKey}`);
-    
-    // Send a lightweight keep-alive every 25 seconds
-    const heartbeat = setInterval(async () => {
-        try {
-            if (!isSocketConnected(sessionKey)) {
-                clearInterval(heartbeat);
-                socketHeartbeatMap.delete(sessionKey);
-                console.log(`💔 Heartbeat stopped for ${sessionKey} (socket disconnected)`);
-                return;
-            }
-            
-            // Send heartbeat by requesting socket state
-            if (sock?.ws?.socket && sock.ws.socket.readyState === 1) {
-                sock.ws.socket.ping();
-            }
-            
-            const health = socketHealthMap.get(sessionKey);
-            if (health) {
-                health.lastHeartbeat = Date.now();
-            }
-            
-        } catch (error) {
-            console.log(`⚠️ Heartbeat error for ${sessionKey}:`, error.message);
-        }
-    }, 25000); // Every 25 seconds
-    
-    socketHeartbeatMap.set(sessionKey, heartbeat);
-}
-
-/* ================= SOCKET STATUS CHECK ================= */
-
-function isSocketConnected(sessionKey) {
-    try {
-        const sock = sessionSockets.get(sessionKey);
-        return sock && sock.ws && sock.ws.socket && sock.ws.socket.readyState === 1;
-    } catch {
-        return false;
     }
 }
 
@@ -328,18 +247,30 @@ router.get('/code', async (req, res) => {
                 error: true
             });
 
-        /* Wait socket ready */
+        /* ===== Wait for socket to be fully ready ===== */
 
-        await new Promise(resolve => {
-            const check = setInterval(() => {
+        await new Promise((resolve, reject) => {
+            
+            const timeout = setTimeout(() => {
+                reject(new Error("Socket initialization timeout after 30 seconds"));
+            }, 30000);
 
-                if (sock?.ws?.readyState === 1) {
-                    clearInterval(check);
+            const checkReady = () => {
+                // Check if socket has completed initialization
+                // Socket is ready when user credentials are loaded
+                if (sock?.user?.id || sock?.authState?.creds?.me?.id) {
+                    clearTimeout(timeout);
+                    console.log(`✅ Socket ready for ${number}`);
                     resolve();
+                } else {
+                    setTimeout(checkReady, 300);
                 }
+            };
 
-            }, 1000);
+            checkReady();
         });
+
+        /* ===== Request pairing code ===== */
 
         const code = await sock.requestPairingCode(number);
 
@@ -354,7 +285,7 @@ router.get('/code', async (req, res) => {
 
     } catch (err) {
 
-        console.log("Pairing error:", err.message);
+        console.log("❌ Pairing error:", err.message);
 
         return res.json({
             code: "Service Temporarily Unavailable",
