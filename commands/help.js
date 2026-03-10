@@ -1,5 +1,4 @@
 const settings = require('../settings')
-const axios = require("axios")
 
 const { prepareWAMessageMedia } = require("@whiskeysockets/baileys")
 
