@@ -4,14 +4,31 @@ async function helpCommand(sock, chatId, message) {
 
 const banner = "https://files.catbox.moe/ip70j9.jpg"
 
-// GENERAL
-const GENERAL = `
-╭────────────────────⬣
+function card(title,text){
+return {
+header:{
+title:title,
+hasMediaAttachment:true,
+imageMessage:{url:banner}
+},
+body:{text:text},
+footer:{text:"BUGFIXED XMD"},
+buttons:[]
+}
+}
+
+const stars = `
 │ ★ ✨ | ⭐ | ✨ | ⭐ | ✨
 │ ★ ✨ | ⭐ | ✨ | ⭐
 │ ★ ✨ | ⭐ | ✨
 │ ★ ✨ | ⭐
 │ ★ ✨
+`
+
+// GENERAL
+const GENERAL = `
+╭────────────────────⬣
+${stars}
 │
 │ ⭐◇GENERAL◇⭐
 │──────────────
@@ -46,18 +63,20 @@ const GENERAL = `
 // ADMIN
 const ADMIN = `
 ╭────────────────────⬣
+${stars}
+│
 │ ⭐◇ADMIN COMMANDS◇⭐
 │──────────────
-│ .ban @user
-│ .promote @user
-│ .demote @user
-│ .mute <minutes>
+│ .ban
+│ .promote
+│ .demote
+│ .mute
 │ .unmute
 │ .delete
 │ .del
-│ .kick @user
-│ .warnings @user
-│ .warn @user
+│ .kick
+│ .warnings
+│ .warn
 │ .antilink
 │ .antibadword
 │ .clear
@@ -79,10 +98,11 @@ const ADMIN = `
 // OWNER
 const OWNER = `
 ╭────────────────────⬣
+${stars}
+│
 │ ⭐◇OWNER COMMANDS◇⭐
 │──────────────
-│ .mode public
-│ .mode private
+│ .mode
 │ .clearsession
 │ .antidelete
 │ .cleartmp
@@ -104,20 +124,24 @@ const OWNER = `
 ╰────────────────────⬣
 `
 
-// BUGFIXED
+// BUG
 const BUG = `
 ╭────────────────────⬣
+${stars}
+│
 │ ⭐◇BUGFIXED SULEXH◇⭐
 │──────────────
-│ .pair <number>
+│ .pair
 │ .user
-│ .depair <number>
+│ .depair
 ╰────────────────────⬣
 `
 
 // IMAGE
 const IMAGE = `
 ╭────────────────────⬣
+${stars}
+│
 │ ⭐◇IMAGE & STICKER LAB◇⭐
 │──────────────
 │ .sticker
@@ -127,7 +151,7 @@ const IMAGE = `
 │ .remini
 │ .crop
 │ .meme
-│ .take <packname>
+│ .take
 │ .emojimix
 │ .tgsticker
 │ .igs
@@ -138,6 +162,8 @@ const IMAGE = `
 // DOWNLOAD
 const DOWNLOAD = `
 ╭────────────────────⬣
+${stars}
+│
 │ ⭐◇DOWNLOADERS◇⭐
 │──────────────
 │ .play
@@ -156,6 +182,8 @@ const DOWNLOAD = `
 // FUN
 const FUN = `
 ╭────────────────────⬣
+${stars}
+│
 │ ⭐◇FUN GAME ZONE◇⭐
 │──────────────
 │ .truth
@@ -171,6 +199,8 @@ const FUN = `
 // PREMIUM
 const PREMIUM = `
 ╭────────────────────⬣
+${stars}
+│
 │ ⭐◇PREMIUM / SECRET◇⭐
 │──────────────
 │ BUG MENU
@@ -179,27 +209,16 @@ const PREMIUM = `
 ╰────────────────────⬣
 `
 
-const sections = [
-{title:"⭐ GENERAL", text:GENERAL},
-{title:"⭐ ADMIN", text:ADMIN},
-{title:"⭐ OWNER", text:OWNER},
-{title:"⭐ BUGFIXED", text:BUG},
-{title:"⭐ IMAGE LAB", text:IMAGE},
-{title:"⭐ DOWNLOAD", text:DOWNLOAD},
-{title:"⭐ FUN", text:FUN},
-{title:"⭐ PREMIUM", text:PREMIUM}
+const cards = [
+card("⭐ GENERAL",GENERAL),
+card("⭐ ADMIN",ADMIN),
+card("⭐ OWNER",OWNER),
+card("⭐ BUGFIXED",BUG),
+card("⭐ IMAGE LAB",IMAGE),
+card("⭐ DOWNLOADERS",DOWNLOAD),
+card("⭐ FUN",FUN),
+card("⭐ PREMIUM",PREMIUM)
 ]
-
-const cards = sections.map(sec => ({
-header:{
-title:sec.title,
-imageMessage:{url:banner},
-hasMediaAttachment:true
-},
-body:{text:sec.text},
-footer:{text:"Powered by Team-Bandhaeali"},
-buttons:[]
-}))
 
 const msg = generateWAMessageFromContent(chatId,{
 viewOnceMessage:{
