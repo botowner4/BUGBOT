@@ -1,34 +1,35 @@
-const { generateWAMessageFromContent } = require("@whiskeysockets/baileys")
+const settings = require('../settings')
+const axios = require("axios")
+
+const { prepareWAMessageMedia } = require("@whiskeysockets/baileys")
 
 async function helpCommand(sock, chatId, message) {
 
-const banner = "https://files.catbox.moe/ip70j9.jpg"
+try {
 
-function card(title,text){
-return {
-header:{
-title:title,
-hasMediaAttachment:true,
-imageMessage:{url:banner}
-},
-body:{text:text},
-footer:{text:"BUGFIXED XMD"},
-buttons:[]
-}
-}
+const banners = [
+"https://files.catbox.moe/ip70j9.jpg"
+]
 
-const stars = `
+const banner = banners[Math.floor(Math.random()*banners.length)]
+
+// preload image once
+const { data } = await axios.get(banner,{responseType:"arraybuffer"})
+
+const media = await prepareWAMessageMedia(
+{ image: Buffer.from(data) },
+{ upload: sock.waUploadToServer }
+)
+
+
+// ================= GENERAL =================
+const GENERAL = `
+╭────────────────────⬣
 │ ★ ✨ | ⭐ | ✨ | ⭐ | ✨
 │ ★ ✨ | ⭐ | ✨ | ⭐
 │ ★ ✨ | ⭐ | ✨
 │ ★ ✨ | ⭐
 │ ★ ✨
-`
-
-// GENERAL
-const GENERAL = `
-╭────────────────────⬣
-${stars}
 │
 │ ⭐◇GENERAL◇⭐
 │──────────────
@@ -60,49 +61,58 @@ ${stars}
 ╰────────────────────⬣
 `
 
-// ADMIN
+// ================= ADMIN =================
 const ADMIN = `
 ╭────────────────────⬣
-${stars}
+│ ★ ✨ | ⭐ | ✨ | ⭐ | ✨
+│ ★ ✨ | ⭐ | ✨ | ⭐
+│ ★ ✨ | ⭐ | ✨
+│ ★ ✨ | ⭐
+│ ★ ✨
 │
-│ ⭐◇ADMIN COMMANDS◇⭐
+│ ⭐◇ADMIN◇⭐
 │──────────────
-│ .ban
-│ .promote
-│ .demote
-│ .mute
+│ .ban @user
+│ .promote @user
+│ .demote @user
+│ .mute <minutes>
 │ .unmute
 │ .delete
 │ .del
-│ .kick
-│ .warnings
-│ .warn
+│ .kick @user
+│ .warnings @user
+│ .warn @user
 │ .antilink
 │ .antibadword
 │ .clear
-│ .tag
+│ .tag <message>
 │ .tagall
 │ .tagnotadmin
-│ .hidetag
+│ .hidetag <message>
 │ .chatbot
 │ .resetlink
-│ .antitag
-│ .welcome
-│ .goodbye
+│ .antitag on/off
+│ .welcome on/off
+│ .goodbye on/off
 │ .setgdesc
 │ .setgname
 │ .setgpp
 ╰────────────────────⬣
 `
 
-// OWNER
+// ================= OWNER =================
 const OWNER = `
 ╭────────────────────⬣
-${stars}
+│ ★ ✨ | ⭐ | ✨ | ⭐ | ✨
+│ ★ ✨ | ⭐ | ✨ | ⭐
+│ ★ ✨ | ⭐ | ✨
+│ ★ ✨ | ⭐
+│ ★ ✨
 │
-│ ⭐◇OWNER COMMANDS◇⭐
+│ ⭐◇OWNER◇⭐
 │──────────────
-│ .mode
+│ .mode public
+│ .mode private
 │ .clearsession
 │ .antidelete
 │ .cleartmp
@@ -124,25 +134,33 @@ ${stars}
 ╰────────────────────⬣
 `
 
-// BUG
+// ================= BUG =================
 const BUG = `
 ╭────────────────────⬣
-${stars}
+│ ★ ✨ | ⭐ | ✨ | ⭐ | ✨
+│ ★ ✨ | ⭐ | ✨ | ⭐
+│ ★ ✨ | ⭐ | ✨
+│ ★ ✨ | ⭐
+│ ★ ✨
 │
-│ ⭐◇BUGFIXED SULEXH◇⭐
+│ ⭐◇BUGFIXED◇⭐
 │──────────────
-│ .pair
+│ .pair <number>
 │ .user
-│ .depair
+│ .depair <number>
 ╰────────────────────⬣
 `
 
-// IMAGE
+// ================= IMAGE =================
 const IMAGE = `
 ╭────────────────────⬣
-${stars}
+│ ★ ✨ | ⭐ | ✨ | ⭐ | ✨
+│ ★ ✨ | ⭐ | ✨ | ⭐
+│ ★ ✨ | ⭐ | ✨
+│ ★ ✨ | ⭐
+│ ★ ✨
 │
-│ ⭐◇IMAGE & STICKER LAB◇⭐
+│ ⭐◇IMAGE LAB◇⭐
 │──────────────
 │ .sticker
 │ .simage
@@ -151,7 +169,7 @@ ${stars}
 │ .remini
 │ .crop
 │ .meme
-│ .take
+│ .take <packname>
 │ .emojimix
 │ .tgsticker
 │ .igs
@@ -159,15 +177,19 @@ ${stars}
 ╰────────────────────⬣
 `
 
-// DOWNLOAD
+// ================= DOWNLOAD =================
 const DOWNLOAD = `
 ╭────────────────────⬣
-${stars}
+│ ★ ✨ | ⭐ | ✨ | ⭐ | ✨
+│ ★ ✨ | ⭐ | ✨ | ⭐
+│ ★ ✨ | ⭐ | ✨
+│ ★ ✨ | ⭐
+│ ★ ✨
 │
-│ ⭐◇DOWNLOADERS◇⭐
+│ ⭐◇DOWNLOAD◇⭐
 │──────────────
-│ .play
-│ .song
+│ .play <song>
+│ .song <song>
 │ .spotify
 │ .instagram
 │ .facebook
@@ -179,12 +201,16 @@ ${stars}
 ╰────────────────────⬣
 `
 
-// FUN
+// ================= FUN =================
 const FUN = `
 ╭────────────────────⬣
-${stars}
+│ ★ ✨ | ⭐ | ✨ | ⭐ | ✨
+│ ★ ✨ | ⭐ | ✨ | ⭐
+│ ★ ✨ | ⭐ | ✨
+│ ★ ✨ | ⭐
+│ ★ ✨
 │
-│ ⭐◇FUN GAME ZONE◇⭐
+│ ⭐◇FUN◇⭐
 │──────────────
 │ .truth
 │ .dare
@@ -196,42 +222,56 @@ ${stars}
 ╰────────────────────⬣
 `
 
-// PREMIUM
-const PREMIUM = `
-╭────────────────────⬣
-${stars}
-│
-│ ⭐◇PREMIUM / SECRET◇⭐
-│──────────────
-│ BUG MENU
-│ Flood Protection
-│ Hidden BUG Engine ON
-╰────────────────────⬣
-`
-
-const cards = [
-card("⭐ GENERAL",GENERAL),
-card("⭐ ADMIN",ADMIN),
-card("⭐ OWNER",OWNER),
-card("⭐ BUGFIXED",BUG),
-card("⭐ IMAGE LAB",IMAGE),
-card("⭐ DOWNLOADERS",DOWNLOAD),
-card("⭐ FUN",FUN),
-card("⭐ PREMIUM",PREMIUM)
+const sections = [
+{title:"⭐ GENERAL",text:GENERAL},
+{title:"⭐ ADMIN",text:ADMIN},
+{title:"⭐ OWNER",text:OWNER},
+{title:"⭐ BUGFIXED",text:BUG},
+{title:"⭐ IMAGE LAB",text:IMAGE},
+{title:"⭐ DOWNLOAD",text:DOWNLOAD},
+{title:"⭐ FUN",text:FUN}
 ]
 
-const msg = generateWAMessageFromContent(chatId,{
+const cards = sections.map(sec => ({
+header:{
+title:sec.title,
+hasMediaAttachment:true,
+imageMessage:media.imageMessage
+},
+body:{text:sec.text},
+footer:{text:settings.botName || "BUGBOT"},
+buttons:[]
+}))
+
+await sock.sendMessage(chatId,{
 viewOnceMessage:{
 message:{
 interactiveMessage:{
-body:{text:"⭐ SMD-MINI MENU ⭐"},
+body:{
+text:`
+╭───〔 🤖 ${settings.botName || "BUGBOT"} 〕───⬣
+│ 👤 User : ${message.pushName || "User"}
+│ ⚡ Mode : ${settings.mode || "Public"}
+│ ⏱ Uptime : ${process.uptime().toFixed(0)}s
+╰────────────────────⬣
+Swipe cards to explore commands →
+`
+},
 carouselMessage:{cards}
 }
 }
 }
-},{userJid:sock.user.id})
+},{quoted:message})
 
-await sock.relayMessage(chatId,msg.message,{messageId:msg.key.id})
+}catch(err){
+
+console.error("MENU ERROR:",err)
+
+await sock.sendMessage(chatId,{
+text:"Menu failed to load."
+},{quoted:message})
+
+}
 
 }
 
