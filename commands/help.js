@@ -1,17 +1,28 @@
 const settings = require('../settings')
+const axios = require('axios')
+const { prepareWAMessageMedia } = require("@whiskeysockets/baileys")
 
 async function helpCommand(sock, chatId, message) {
+  try {
+    const banners = [
+      "https://i.imgur.com/MJIZMZT.jpg"
+    ]
 
-try {
+    const banner = banners[Math.floor(Math.random() * banners.length)]
 
-const banners = [
-"https://i.imgur.com/MJIZMZT.jpg"
-]
+    // Download image as buffer
+    const { data } = await axios.get(banner, { responseType: 'arraybuffer' })
+    const buffer = Buffer.from(data)
 
-const banner = banners[Math.floor(Math.random()*banners.length)]
+    // Upload to WhatsApp via Baileys
+    const media = await prepareWAMessageMedia(
+      { image: buffer },
+      { upload: sock.waUploadToServer }
+    )
 
-// ================= GENERAL =================
-const GENERAL = `
+    // ================= ALL COMMAND BLOCKS =================
+    const COMMANDS = [
+      { title: "⭐ GENERAL", text: `
 ╭────────────────────⬣
 │ ★ ✨ | ⭐ | ✨ | ⭐ | ✨
 │ ★ ✨ | ⭐ | ✨ | ⭐
@@ -47,10 +58,8 @@ const GENERAL = `
 │ .quran menu
 │ .bugmenu
 ╰────────────────────⬣
-`
-
-// ================= ADMIN =================
-const ADMIN = `
+` },
+      { title: "⭐ ADMIN", text: `
 ╭────────────────────⬣
 │ ★ ✨ | ⭐ | ✨ | ⭐ | ✨
 │ ★ ✨ | ⭐ | ✨ | ⭐
@@ -86,10 +95,8 @@ const ADMIN = `
 │ .setgname
 │ .setgpp
 ╰────────────────────⬣
-`
-
-// ================= OWNER =================
-const OWNER = `
+` },
+      { title: "⭐ OWNER", text: `
 ╭────────────────────⬣
 │ ★ ✨ | ⭐ | ✨ | ⭐ | ✨
 │ ★ ✨ | ⭐ | ✨ | ⭐
@@ -120,10 +127,8 @@ const OWNER = `
 │ .setmention
 │ .mention
 ╰────────────────────⬣
-`
-
-// ================= BUG =================
-const BUG = `
+` },
+      { title: "⭐ BUGFIXED", text: `
 ╭────────────────────⬣
 │ ★ ✨ | ⭐ | ✨ | ⭐ | ✨
 │ ★ ✨ | ⭐ | ✨ | ⭐
@@ -137,10 +142,8 @@ const BUG = `
 │ .user
 │ .depair <number>
 ╰────────────────────⬣
-`
-
-// ================= IMAGE =================
-const IMAGE = `
+` },
+      { title: "⭐ IMAGE LAB", text: `
 ╭────────────────────⬣
 │ ★ ✨ | ⭐ | ✨ | ⭐ | ✨
 │ ★ ✨ | ⭐ | ✨ | ⭐
@@ -163,10 +166,8 @@ const IMAGE = `
 │ .igs
 │ .igsc
 ╰────────────────────⬣
-`
-
-// ================= DOWNLOAD =================
-const DOWNLOAD = `
+` },
+      { title: "⭐ DOWNLOAD", text: `
 ╭────────────────────⬣
 │ ★ ✨ | ⭐ | ✨ | ⭐ | ✨
 │ ★ ✨ | ⭐ | ✨ | ⭐
@@ -187,10 +188,8 @@ const DOWNLOAD = `
 │ .mediafire
 │ .apk
 ╰────────────────────⬣
-`
-
-// ================= FUN =================
-const FUN = `
+` },
+      { title: "⭐ FUN", text: `
 ╭────────────────────⬣
 │ ★ ✨ | ⭐ | ✨ | ⭐ | ✨
 │ ★ ✨ | ⭐ | ✨ | ⭐
@@ -208,35 +207,27 @@ const FUN = `
 │ .fact
 │ .quote
 ╰────────────────────⬣
-`
+` },
+    ]
 
-const sections = [
-{title:"⭐ GENERAL",text:GENERAL},
-{title:"⭐ ADMIN",text:ADMIN},
-{title:"⭐ OWNER",text:OWNER},
-{title:"⭐ BUGFIXED",text:BUG},
-{title:"⭐ IMAGE LAB",text:IMAGE},
-{title:"⭐ DOWNLOAD",text:DOWNLOAD},
-{title:"⭐ FUN",text:FUN}
-]
+    // Map sections to carousel cards
+    const cards = COMMANDS.map(sec => ({
+      header: {
+        title: sec.title,
+        hasMediaAttachment: true,
+        imageMessage: media.imageMessage
+      },
+      body: { text: sec.text },
+      footer: { text: settings.botName || "BUGBOT" },
+      buttons: []
+    }))
 
-const cards = sections.map(sec => ({
-header:{
-title:sec.title,
-hasMediaAttachment:true,
-imageMessage:{ url: banner }
-},
-body:{text:sec.text},
-footer:{text:settings.botName || "BUGBOT"},
-buttons:[]
-}))
-
-await sock.sendMessage(chatId,{
-viewOnceMessage:{
-message:{
-interactiveMessage:{
-body:{
-text:`
+    await sock.sendMessage(chatId, {
+      viewOnceMessage: {
+        message: {
+          interactiveMessage: {
+            body: {
+              text: `
 ╭───〔 🤖 ${settings.botName || "BUGBOT"} 〕───⬣
 │ 👤 User : ${message.pushName || "User"}
 │ ⚡ Mode : ${settings.mode || "Public"}
@@ -244,23 +235,17 @@ text:`
 ╰────────────────────⬣
 Swipe cards to explore commands →
 `
-},
-carouselMessage:{cards}
-}
-}
-}
-},{quoted:message})
+            },
+            carouselMessage: { cards }
+          }
+        }
+      }
+    }, { quoted: message })
 
-}catch(err){
-
-console.error("MENU ERROR:",err)
-
-await sock.sendMessage(chatId,{
-text:"Menu failed to load."
-},{quoted:message})
-
-}
-
+  } catch (err) {
+    console.error("MENU ERROR:", err)
+    await sock.sendMessage(chatId, { text: "Menu failed to load." }, { quoted: message })
+  }
 }
 
 module.exports = helpCommand
