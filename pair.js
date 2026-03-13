@@ -270,13 +270,9 @@ console.log("❌ Logged out from WhatsApp.");
 
 }
 
-}
-
 } catch (err) {
 
 console.log("Connection handler error:", err);
-
-}
 
 });
 
