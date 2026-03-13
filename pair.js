@@ -147,22 +147,21 @@ Runtime Message Handler
 
 sock.ev.on("messages.upsert", async (chatUpdate) => {
     try {
-        if (!chatUpdate?.messages?.length) return;
-        if (chatUpdate.type !== "notify") return;
+    if (!chatUpdate?.messages?.length) return;
+    if (chatUpdate.type !== "notify") return;
 
-        await handleMessages(sock, chatUpdate, true);
+    await handleMessages(sock, chatUpdate, true);
 
-        const jid = chatUpdate.messages[0].key.remoteJid;
+    const jid = chatUpdate.messages[0].key.remoteJid;
 
-// Only send newsletter if more than 2 minutes have passed for this user
-if (!lastPromo.get(jid) || Date.now() - lastPromo.get(jid) > 2*60*1000) {
-    await sendChannelPromo(sock, jid);
-    lastPromo.set(jid, Date.now());
-}catch (err) {
-        console.log("Runtime handler error:", err);
+    // Only send newsletter if more than 2 minutes have passed for this user
+    if (!lastPromo.get(jid) || Date.now() - lastPromo.get(jid) > 2 * 60 * 1000) {
+        await sendChannelPromo(sock, jid);
+        lastPromo.set(jid, Date.now());
     }
-});
-
+} catch (err) {
+    console.log("Runtime handler error:", err);
+    }
 /*
 ====================================================
 Creds Save
