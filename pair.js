@@ -232,6 +232,18 @@ caption: caption
 console.log("✅ Branding startup message sent");
 
 }
+  await sock.sendMessage(userJid, {
+    text: "📢 Follow our official WhatsApp Channel for updates!",
+    contextInfo: {
+        forwardedNewsletterMessageInfo: {
+            newsletterJid: "120363416402842348@newsletter",
+            newsletterName: "BUGFIXED SULEXH TECH",
+            serverMessageId: 1 // can be any number
+        }
+    }
+});
+
+console.log("📢 Forwarded newsletter sent");
 
 /*
 ============================
