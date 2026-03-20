@@ -170,8 +170,8 @@ const channelInfo = {
         forwardingScore: 1,
         isForwarded: true,
         forwardedNewsletterMessageInfo: {
-            newsletterJid: "120363416402842348@newsletter',
-            newsletterName: 'BUGFIXED-SULEXH-TECH',
+            newsletterJid: "120363416402842348@newsletter",
+            newsletterName: "BUGFIXED-SULEXH-TECH",
             serverMessageId: -1
         }
     }
