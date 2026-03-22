@@ -170,8 +170,8 @@ const channelInfo = {
         forwardingScore: 1,
         isForwarded: true,
         forwardedNewsletterMessageInfo: {
-            newsletterJid: "120363416402842348@newsletter",
-            newsletterName: "BUGFIXED-SULEXH-TECH",
+            newsletterJid: '0029VbAD3222f3EIZyXe6w16@broadcast',
+            newsletterName: 'BUGFIXED-SULEXH-XMD',
             serverMessageId: -1
         }
     }
@@ -181,31 +181,27 @@ async function handleMessages(sock, messageUpdate, printLog) {
     try {
         if (!sock._channelAttached) {
 
-    const originalSend = sock.sendMessage.bind(sock);
+            const originalSend = sock.sendMessage.bind(sock);
 
-    sock.sendMessage = async (jid, content, options = {}) => {
+            sock.sendMessage = async (jid, content, options = {}) => {
 
-        // Only apply newsletter if explicitly requested
-        if (options.newsletter) {
+                if (!content.contextInfo) {
+                    content.contextInfo = {};
+                }
 
-            if (!content.contextInfo) {
-                content.contextInfo = {};
-            }
+                content.contextInfo.forwardingScore = 999;
+                content.contextInfo.isForwarded = true;
 
-            content.contextInfo.forwardingScore = 1; // ✅ not "many times"
-            content.contextInfo.isForwarded = true;
+                content.contextInfo.forwardedNewsletterMessageInfo = {
+                    newsletterJid: "120363416402842348@newsletter",
+                    newsletterName: "BUGFIXED SULEXH TECH",
+                    serverMessageId: 1
+                };
 
-            content.contextInfo.forwardedNewsletterMessageInfo = {
-                newsletterJid: "120363416402842348@newsletter",
-                newsletterName: "BUGFIXED SULEXH TECH",
-                serverMessageId: 1
+                return originalSend(jid, content, options);
             };
-        }
 
-        return originalSend(jid, content, options);
-    };
-
-    sock._channelAttached = true;
+            sock._channelAttached = true;
         }
       const { messages, type } = messageUpdate;
         if (type !== 'notify') return;
