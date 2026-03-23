@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ultimate Pairing UI</title>
+<title>BUGBOT Pairing UI</title>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI;}
@@ -11,9 +11,6 @@
 body{
   background:black;
   height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
   overflow:hidden;
 }
 
@@ -22,7 +19,7 @@ body{
   width:100%;
   height:100vh;
   position:relative;
-  background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);
+  background:linear-gradient(135deg,#2b1055,#7597de);
   overflow:hidden;
 }
 
@@ -33,100 +30,41 @@ body{
   inset:0;
   background:radial-gradient(circle at 30% 30%, #ff4d4d, transparent 40%),
              radial-gradient(circle at 70% 70%, #33ccff, transparent 40%);
-  filter:blur(120px);
-  opacity:0.4;
-  animation:move 15s infinite alternate;
-}
-@keyframes move{
-  0%{transform:translate(0,0);}
-  100%{transform:translate(50px,-50px);}
+  filter:blur(100px);
+  opacity:0.3;
 }
 
 /* PARTICLES */
 .particle{
   position:absolute;
   border-radius:50%;
-  opacity:0.5;
+  opacity:0.6;
   animation:float 10s infinite;
 }
 @keyframes float{
-  0%{transform:translateY(0);}
-  50%{transform:translateY(-150px);}
-  100%{transform:translateY(0);}
+  50%{transform:translateY(-120px);}
 }
 
-/* STATUS BAR */
+/* STATUS */
 .status{
   position:absolute;
-  top:10px;
+  top:8px;
   width:95%;
   left:2.5%;
   display:flex;
   justify-content:space-between;
-  align-items:center;
   color:white;
   font-size:13px;
-}
-
-.right{
-  display:flex;
-  align-items:center;
-  gap:8px;
-}
-
-/* SIGNAL */
-.signal{
-  display:flex;
-  gap:2px;
-}
-.signal span{
-  width:3px;
-  background:white;
-}
-.signal span:nth-child(1){height:4px;}
-.signal span:nth-child(2){height:6px;}
-.signal span:nth-child(3){height:8px;}
-.signal span:nth-child(4){height:10px;}
-
-/* WIFI */
-.wifi{
-  width:14px;
-  height:10px;
-  border:2px solid white;
-  border-top:none;
-  border-radius:0 0 10px 10px;
-}
-
-/* BATTERY */
-.battery-box{
-  width:22px;
-  height:10px;
-  border:2px solid white;
-  position:relative;
-}
-.battery-box::after{
-  content:"";
-  position:absolute;
-  right:-4px;
-  top:2px;
-  width:2px;
-  height:4px;
-  background:white;
-}
-.battery-fill{
-  height:100%;
-  width:100%;
-  background:#00ff66;
 }
 
 /* CONTENT */
 .content{
   position:absolute;
-  top:50%;
+  top:48%;
   left:50%;
   transform:translate(-50%,-50%);
   width:90%;
-  max-width:400px;
+  max-width:380px;
   text-align:center;
   color:white;
 }
@@ -135,7 +73,7 @@ body{
 .header{
   display:flex;
   justify-content:space-between;
-  margin-bottom:20px;
+  margin-bottom:10px;
 }
 .user{
   display:flex;
@@ -143,7 +81,7 @@ body{
   align-items:center;
 }
 .user img{
-  width:45px;
+  width:40px;
   border-radius:50%;
 }
 .username{
@@ -153,13 +91,13 @@ body{
 .battery{
   background:#00ff66;
   color:black;
-  padding:5px 10px;
+  padding:4px 10px;
   border-radius:20px;
 }
 
 /* TITLE */
 .title{
-  font-size:32px;
+  font-size:28px;
   margin:10px 0;
   background:linear-gradient(90deg,orange,yellow,green);
   -webkit-background-clip:text;
@@ -169,34 +107,52 @@ body{
 /* INPUT */
 input{
   width:100%;
-  padding:15px;
+  padding:12px;
   border-radius:10px;
   border:none;
-  margin-top:10px;
+  margin-top:8px;
 }
 
 /* BUTTON */
 button{
   width:100%;
-  padding:15px;
-  margin-top:10px;
+  padding:12px;
+  margin-top:8px;
   border:none;
-  border-radius:12px;
+  border-radius:25px;
   background:linear-gradient(90deg,orange,green);
   color:white;
   font-weight:bold;
 }
 
-/* MUSIC BUTTON */
+/* CODE BOX */
+.code-box{
+  margin-top:10px;
+  padding:10px;
+  background:rgba(255,255,255,0.1);
+  border-radius:10px;
+  font-size:16px;
+}
+
+/* COPY BUTTON */
+.copy{
+  margin-top:5px;
+  background:#00ff66;
+  color:black;
+  padding:8px;
+  border-radius:20px;
+  cursor:pointer;
+}
+
+/* MUSIC */
 .music{
   position:absolute;
-  bottom:20px;
+  bottom:10px;
   left:50%;
   transform:translateX(-50%);
   background:#111;
-  padding:12px 25px;
+  padding:10px 20px;
   border-radius:25px;
-  border:1px solid #333;
   color:white;
   cursor:pointer;
 }
@@ -210,22 +166,7 @@ button{
   <!-- STATUS -->
   <div class="status">
     <span id="time"></span>
-
-    <div class="right">
-      <span id="speed">0.0 k/s</span>
-
-      <div class="signal">
-        <span></span><span></span><span></span><span></span>
-      </div>
-
-      <div class="wifi"></div>
-
-      <div class="battery-box">
-        <div class="battery-fill" id="batteryFill"></div>
-      </div>
-
-      <span id="batteryText">100%</span>
-    </div>
+    <span id="speed">2.3 k/s 📶 WiFi 🔋92%</span>
   </div>
 
   <!-- CONTENT -->
@@ -241,19 +182,22 @@ button{
 
     <div class="title">PAIRING CODE</div>
 
-    <input placeholder="+2547XXXXXXXX">
-    <button>GENERATE</button>
+    <input id="number" placeholder="+2547XXXXXXX">
+
+    <button onclick="generate()">GENERATE</button>
+
+    <!-- GENERATED CODE -->
+    <div id="result"></div>
 
   </div>
 
-  <!-- MUSIC BUTTON -->
+  <!-- MUSIC -->
   <div class="music" onclick="toggleMusic()" id="musicBtn">
-    ⏸ Stop Music
+    ⏸ Music
   </div>
 
 </div>
 
-<!-- MUSIC -->
 <audio id="music" loop autoplay>
   <source src="https://files.catbox.moe/s8tp1b.mp3">
 </audio>
@@ -269,61 +213,62 @@ setInterval(()=>{
 
 /* NETWORK SPEED */
 setInterval(()=>{
-  let speed = (Math.random()*10).toFixed(1);
-  document.getElementById("speed").innerText = speed + " k/s";
+  let speed = (Math.random()*5+1).toFixed(1);
+  document.getElementById("speed").innerText =
+    speed+" k/s 📶 WiFi 🔋92%";
 },1500);
 
-/* BATTERY */
-let level = 100;
-let charging = false;
-
-setInterval(()=>{
-  if(charging){
-    level+=1;
-    if(level>=100) charging=false;
-  }else{
-    level-=0.2;
-    if(level<=20) charging=true;
+/* GENERATE */
+function generate(){
+  let num = document.getElementById("number").value;
+  if(!num){
+    alert("Enter number");
+    return;
   }
 
-  document.getElementById("batteryFill").style.width = level+"%";
-  document.getElementById("batteryText").innerText = Math.floor(level)+"%";
-},2000);
+  let code = "PAIR-" + Math.floor(Math.random()*999999);
+
+  document.getElementById("result").innerHTML = `
+    <div class="code-box">${code}</div>
+    <div class="copy" onclick="copyCode('${code}')">COPY</div>
+  `;
+}
+
+/* COPY */
+function copyCode(code){
+  navigator.clipboard.writeText(code);
+  alert("Copied: " + code);
+}
 
 /* MUSIC */
 let music = document.getElementById("music");
 let btn = document.getElementById("musicBtn");
 
-/* AUTOPLAY FIX */
 window.addEventListener("load", ()=>{
-  music.volume = 0.4;
-  let p = music.play();
-  if(p !== undefined){
-    p.catch(()=>{
-      document.body.addEventListener("click", ()=>{
-        music.play().catch(()=>{});
-      },{once:true});
-    });
-  }
+  music.volume=0.4;
+  music.play().catch(()=>{
+    document.body.addEventListener("click", ()=>{
+      music.play();
+    },{once:true});
+  });
 });
 
-/* BUTTON CONTROL */
 function toggleMusic(){
   if(music.paused){
     music.play();
-    btn.innerText="⏸ Stop Music";
+    btn.innerText="⏸ Music";
   }else{
     music.pause();
-    btn.innerText="▶ Play Music";
+    btn.innerText="▶ Music";
   }
 }
 
 /* PARTICLES */
 let card = document.getElementById("card");
-for(let i=0;i<40;i++){
+for(let i=0;i<30;i++){
   let p=document.createElement("div");
   p.className="particle";
-  let s=Math.random()*6+4;
+  let s=Math.random()*5+3;
   p.style.width=p.style.height=s+"px";
   p.style.background=`rgba(${Math.random()*255},${Math.random()*255},255,0.7)`;
   p.style.left=Math.random()*100+"%";
