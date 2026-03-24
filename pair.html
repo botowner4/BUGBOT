@@ -1,282 +1,185 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BUGBOT Pairing UI</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pair Code</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: black;
+      font-family: Arial, sans-serif;
+    }
 
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI;}
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
 
-body{
-  background:black;
-  height:100vh;
-  overflow:hidden;
-}
+    .box {
+      width: 300px;
+      height: 320px;
+      padding: 20px;
+      position: relative;
+      text-align: center;
+      background-color: rgb(0, 0, 0);
+      border-radius: 10px;
+      transform: perspective(1000px) rotateY(0deg);
+      box-shadow: 0 0 20px rgba(250, 249, 249, 0.7);
+      position: relative;
+    }
 
-/* CARD */
-.card{
-  width:100%;
-  height:100vh;
-  position:relative;
-  background:linear-gradient(135deg,#2b1055,#7597de);
-  overflow:hidden;
-}
+    #text { color: #f6f5f5; }
+    .input-container input { color: #f1eaea; }
+    .centered-text { color: #e9e4e4; text-align:center; }
 
-/* GLOW */
-.card::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:radial-gradient(circle at 30% 30%, #ff4d4d, transparent 40%),
-             radial-gradient(circle at 70% 70%, #33ccff, transparent 40%);
-  filter:blur(100px);
-  opacity:0.3;
-}
+    .input-container {
+      display: flex;
+      background: black;
+      border-radius: 1rem;
+      padding: 0.3rem;
+      gap: 0.3rem;
+      max-width: 300px;
+      width: 100%;
+    }
 
-/* PARTICLES */
-.particle{
-  position:absolute;
-  border-radius:50%;
-  opacity:0.6;
-  animation:float 10s infinite;
-}
-@keyframes float{
-  50%{transform:translateY(-120px);}
-}
+    .input-container input {
+      border-radius: 0.8rem 0 0 0.8rem;
+      background: #e8e8e8;
+      box-shadow: inset 13px 13px 10px #dcdcdc, inset -13px -13px 10px #f4f4f4;
+      width: 100%;
+      flex-basis: 75%;
+      padding: 1rem;
+      border: none;
+      color: #000;
+    }
 
-/* STATUS */
-.status{
-  position:absolute;
-  top:8px;
-  width:95%;
-  left:2.5%;
-  display:flex;
-  justify-content:space-between;
-  color:white;
-  font-size:13px;
-}
+    .input-container button {
+      flex-basis: 15%;
+      padding: 1rem;
+      background: #5935ac;
+      font-weight: 700;
+      color: white;
+      border: none;
+      border-radius: 0 1rem 1rem 0;
+    }
 
-/* CONTENT */
-.content{
-  position:absolute;
-  top:48%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  width:90%;
-  max-width:380px;
-  text-align:center;
-  color:white;
-}
-
-/* HEADER */
-.header{
-  display:flex;
-  justify-content:space-between;
-  margin-bottom:10px;
-}
-.user{
-  display:flex;
-  gap:10px;
-  align-items:center;
-}
-.user img{
-  width:40px;
-  border-radius:50%;
-}
-.username{
-  color:orange;
-  font-weight:bold;
-}
-.battery{
-  background:#00ff66;
-  color:black;
-  padding:4px 10px;
-  border-radius:20px;
-}
-
-/* TITLE */
-.title{
-  font-size:28px;
-  margin:10px 0;
-  background:linear-gradient(90deg,orange,yellow,green);
-  -webkit-background-clip:text;
-  color:transparent;
-}
-
-/* INPUT */
-input{
-  width:100%;
-  padding:12px;
-  border-radius:10px;
-  border:none;
-  margin-top:8px;
-}
-
-/* BUTTON */
-button{
-  width:100%;
-  padding:12px;
-  margin-top:8px;
-  border:none;
-  border-radius:25px;
-  background:linear-gradient(90deg,orange,green);
-  color:white;
-  font-weight:bold;
-}
-
-/* CODE BOX */
-.code-box{
-  margin-top:10px;
-  padding:10px;
-  background:rgba(255,255,255,0.1);
-  border-radius:10px;
-  font-size:16px;
-}
-
-/* COPY BUTTON */
-.copy{
-  margin-top:5px;
-  background:#00ff66;
-  color:black;
-  padding:8px;
-  border-radius:20px;
-  cursor:pointer;
-}
-
-/* MUSIC */
-.music{
-  position:absolute;
-  bottom:10px;
-  left:50%;
-  transform:translateX(-50%);
-  background:#111;
-  padding:10px 20px;
-  border-radius:25px;
-  color:white;
-  cursor:pointer;
-}
-</style>
+    /* MUSIC BUTTON (BOTTOM ONLY) */
+    .music-btn{
+      position:fixed;
+      bottom:15px;
+      left:50%;
+      transform:translateX(-50%);
+      background:#111;
+      color:white;
+      padding:10px 20px;
+      border-radius:25px;
+      border:1px solid #333;
+      cursor:pointer;
+      z-index:999;
+    }
+  </style>
 </head>
-
 <body>
 
-<div class="card" id="card">
+  <div class="container">
+    <div class="main">
+      <div class="box" id="box">
+        <div id="text">
+          <i class="fa fa-user"></i>
+          <h3 class="centered-text">BUGBOT PAIRING CODE</h3>
+          <br>
+          <h6>Made By Bugfixed Sulexh tech🔥🥳.</h6>
+          <h6>Enter Your Number with Country Code.</h6>
 
-  <!-- STATUS -->
-  <div class="status">
-    <span id="time"></span>
-    <span id="speed">2.3 k/s 📶 WiFi 🔋92%</span>
-  </div>
+          <div class="input-container">
+            <input placeholder="2547xxxxxx" type="number" id="number">
+            <button id="submit">Submit</button>
+          </div>
 
-  <!-- CONTENT -->
-  <div class="content">
+          <a id="waiting-message" class="centered-text" style="display: none;">Please wait a while</a>
+          <br><br>
+          <main id="pair"></main>
 
-    <div class="header">
-      <div class="user">
-        <img src="https://i.imgur.com/6VBx3io.png">
-        <div class="username">bugfixed sulexh tech</div>
+        </div>
       </div>
-      <div class="battery">100%</div>
     </div>
-
-    <div class="title">PAIRING CODE</div>
-
-    <input id="number" placeholder="+2547XXXXXXX">
-
-    <button onclick="generate()">GENERATE</button>
-
-    <!-- GENERATED CODE -->
-    <div id="result"></div>
-
   </div>
 
-  <!-- MUSIC -->
-  <div class="music" onclick="toggleMusic()" id="musicBtn">
-    ⏸ Music
-  </div>
+  <!-- 🎵 MUSIC -->
+  <audio id="bgMusic" loop autoplay>
+    <source src="https://files.catbox.moe/s8tp1b.mp3" type="audio/mpeg">
+  </audio>
 
-</div>
+  <!-- 🎵 BUTTON -->
+  <div class="music-btn" id="musicBtn">⏸ Music</div>
 
-<audio id="music" loop autoplay>
-  <source src="https://files.catbox.moe/s8tp1b.mp3">
-</audio>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.0.0-alpha.1/axios.min.js"></script>
 
-<script>
+  <script>
+    let a = document.getElementById("pair");
+    let b = document.getElementById("submit");
+    let c = document.getElementById("number");
 
-/* TIME */
-setInterval(()=>{
-  let now = new Date();
-  document.getElementById("time").innerText =
-    now.getHours()+":"+now.getMinutes().toString().padStart(2,'0');
-},1000);
+    async function Copy() {
+      let text = document.getElementById("copy").innerText;
+      let obj = document.getElementById("copy");
+      await navigator.clipboard.writeText(obj.innerText.replace('CODE: ', ''));
+      obj.innerText = "COPIED";
+      obj.style = "color:blue;font-weight:bold";
+      setTimeout(() => {
+        obj.innerText = text;
+        obj.style = "color:white;font-weight-bold";
+      }, 500);
+    }
 
-/* NETWORK SPEED */
-setInterval(()=>{
-  let speed = (Math.random()*5+1).toFixed(1);
-  document.getElementById("speed").innerText =
-    speed+" k/s 📶 WiFi 🔋92%";
-},1500);
+    b.addEventListener("click", async (e) => {
+      e.preventDefault();
+      if (!c.value) {
+        a.innerHTML = '<a style="color:white;font-weight:bold">Enter your WhatsApp number with Country Code</a><br><br>';
+      } else if (c.value.replace(/[^0-9]/g, "").length < 11) {
+        a.innerHTML = '<a style="color:red;font-weight:bold">Invalid Number</a><br><br>';
+      } else {
+        const Venocyber_Tech = c.value.replace(/[^0-9]/g, "");
+        a.innerHTML = '<a style="color:white;font-weight:bold">Please Wait...</a><br><br>';
+        let { data } = await axios(`/code?number=${Venocyber_Tech}`);
+        let code = data.code || "Service Unavailable";
+        a.innerHTML = '<font id="copy" onclick="Copy()" style="color:red;font-weight:bold" size="5">CODE: <span style="color:white;font-weight:bold">' + code + '</span></font><br><br><br>';
+      }
+    });
 
-/* GENERATE */
-function generate(){
-  let num = document.getElementById("number").value;
-  if(!num){
-    alert("Enter number");
-    return;
-  }
+    /* 🎵 MUSIC CONTROL */
+    let music = document.getElementById("bgMusic");
+    let btn = document.getElementById("musicBtn");
 
-  let code = "PAIR-" + Math.floor(Math.random()*999999);
+    window.addEventListener("load", ()=>{
+      music.volume = 0.4;
+      let p = music.play();
+      if(p !== undefined){
+        p.catch(()=>{
+          document.body.addEventListener("click", ()=>{
+            music.play().catch(()=>{});
+          },{once:true});
+        });
+      }
+    });
 
-  document.getElementById("result").innerHTML = `
-    <div class="code-box">${code}</div>
-    <div class="copy" onclick="copyCode('${code}')">COPY</div>
-  `;
-}
-
-/* COPY */
-function copyCode(code){
-  navigator.clipboard.writeText(code);
-  alert("Copied: " + code);
-}
-
-/* MUSIC */
-let music = document.getElementById("music");
-let btn = document.getElementById("musicBtn");
-
-window.addEventListener("load", ()=>{
-  music.volume=0.4;
-  music.play().catch(()=>{
-    document.body.addEventListener("click", ()=>{
-      music.play();
-    },{once:true});
-  });
-});
-
-function toggleMusic(){
-  if(music.paused){
-    music.play();
-    btn.innerText="⏸ Music";
-  }else{
-    music.pause();
-    btn.innerText="▶ Music";
-  }
-}
-
-/* PARTICLES */
-let card = document.getElementById("card");
-for(let i=0;i<30;i++){
-  let p=document.createElement("div");
-  p.className="particle";
-  let s=Math.random()*5+3;
-  p.style.width=p.style.height=s+"px";
-  p.style.background=`rgba(${Math.random()*255},${Math.random()*255},255,0.7)`;
-  p.style.left=Math.random()*100+"%";
-  p.style.top=Math.random()*100+"%";
-  p.style.animationDuration=(5+Math.random()*10)+"s";
-  card.appendChild(p);
-}
-</script>
+    btn.onclick = ()=>{
+      if(music.paused){
+        music.play();
+        btn.innerText="⏸ Music";
+      }else{
+        music.pause();
+        btn.innerText="▶ Music";
+      }
+    };
+  </script>
 
 </body>
 </html>
