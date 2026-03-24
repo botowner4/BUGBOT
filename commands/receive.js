@@ -1,67 +1,43 @@
-const axios = require("axios");
+const axios = require('axios');
 
 async function receiveCommand(sock, chatId, message, userMessage) {
     try {
-        const args = userMessage.trim().split(/\s+/);
+        let args = userMessage.trim().split(" ");
 
-        // remove ".receive"
-        args.shift();
+        let amount = args[1];
+        let number = args[2];
 
-        let amount;
-        let phone;
-
-        // ✅ default amount = 100
-        if (args.length === 1) {
+        if (!number) {
+            number = amount;
             amount = 100;
-            phone = args[0];
-        } else if (args.length >= 2) {
-            amount = parseInt(args[0]);
-            phone = args[1];
-        } else {
-            return sock.sendMessage(chatId, {
-                text: "❌ Usage:\n.receive 100 2547xxxxxxx\nOR\n.receive 2547xxxxxxx"
-            }, { quoted: message });
         }
 
-        // ❌ validate amount
-        if (isNaN(amount) || amount <= 0) {
-            return sock.sendMessage(chatId, {
-                text: "❌ Invalid amount"
-            }, { quoted: message });
-        }
-
-        // clean phone
-        phone = phone.replace(/[^0-9]/g, "").replace(/^0/, "254");
-
-        if (phone.length !== 12) {
-            return sock.sendMessage(chatId, {
-                text: "❌ Invalid phone. Use 2547XXXXXXXX"
-            }, { quoted: message });
-        }
-
-        // 🔥 send to backend
-        let res = await axios.post("http://localhost:3000/pay", {
-            amount,
-            phone
-        });
-
-        if (res.data.success) {
+        if (!number) {
             await sock.sendMessage(chatId, {
-                text: `💰 *PAYMENT REQUEST SENT*
+                text: "❌ Usage:\n.receive 200 2547xxxxxx\nor\n.receive 2547xxxxxx"
+            }, { quoted: message });
+            return;
+        }
 
-Amount: ${amount} KES
-Number: ${phone}
+        await sock.sendMessage(chatId, {
+            text: `💳 Sending payment request...\n📞 ${number}\n💰 KES ${amount}`
+        }, { quoted: message });
 
-📲 Check your phone and enter M-Pesa PIN`
+        // ⚠️ USE YOUR REAL DOMAIN HERE
+        const res = await axios.get(`https://bugbot-i3yc.onrender.com/receive?amount=${amount}&number=${number}`);
+
+        if (res.data.status) {
+            await sock.sendMessage(chatId, {
+                text: "✅ Payment prompt sent. Check phone 📲"
             }, { quoted: message });
         } else {
             await sock.sendMessage(chatId, {
-                text: "❌ Payment request failed"
+                text: `❌ Failed: ${res.data.message}`
             }, { quoted: message });
         }
 
-    } catch (error) {
-        console.error("Receive command error:", error);
+    } catch (err) {
+        console.error("Command error:", err.message);
 
         await sock.sendMessage(chatId, {
             text: "❌ Error sending payment request"
