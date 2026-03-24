@@ -16,59 +16,59 @@
       font-family: Arial, sans-serif;
       overflow: hidden;
 
-      /* 🌈 GRADIENT BACKGROUND */
       background: linear-gradient(135deg,#0f0c29,#302b63,#24243e);
     }
 
-    /* ✨ GLOW LAYER */
+    /* 🌈 BACKGROUND GLOW */
     body::before {
       content: "";
       position: absolute;
       inset: 0;
       background:
-        radial-gradient(circle at 20% 30%, #ff4d4d, transparent 40%),
-        radial-gradient(circle at 80% 70%, #33ccff, transparent 40%),
+        radial-gradient(circle at 20% 30%, #ff3c3c, transparent 40%),
+        radial-gradient(circle at 80% 70%, #00ffff, transparent 40%),
         radial-gradient(circle at 50% 50%, #8b17b6, transparent 50%);
       filter: blur(120px);
-      opacity: 0.4;
-      animation: moveGlow 15s infinite alternate;
+      opacity: 0.5;
+      animation: moveGlow 12s infinite alternate;
       z-index: 0;
     }
 
     @keyframes moveGlow {
       0% { transform: translate(0,0); }
-      50% { transform: translate(50px,-50px); }
-      100% { transform: translate(-50px,50px); }
+      50% { transform: translate(60px,-40px); }
+      100% { transform: translate(-60px,40px); }
     }
 
     .container {
       position: relative;
       z-index: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
     }
 
+    /* 🔥 GLASS + NEON CARD */
     .box {
       width: 300px;
       height: 320px;
       padding: 20px;
       text-align: center;
-      background-color: rgba(0,0,0,0.85);
-      border-radius: 10px;
 
-      /* 🔥 STRONGER GLOW */
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(10px);
+
+      border-radius: 15px;
+
       box-shadow:
         0 0 20px rgba(255,255,255,0.2),
-        0 0 40px rgba(138,43,226,0.4),
-        0 0 60px rgba(0,255,255,0.3);
+        0 0 40px rgba(255,0,150,0.5),
+        0 0 60px rgba(0,255,255,0.4);
     }
 
     #text { color: #f6f5f5; }
     .centered-text { color: #e9e4e4; text-align:center; }
 
-    /* 🌈 GRADIENT TITLE */
+    /* 🌈 TITLE */
     h3 {
+      font-size: 28px;
       background: linear-gradient(90deg, orange, yellow, limegreen);
       -webkit-background-clip: text;
       color: transparent;
@@ -92,17 +92,50 @@
       color: #000;
     }
 
-    /* 🌈 GLOW BUTTON */
+    /* 🔥 GLOW BUTTON */
     .input-container button {
       padding: 1rem;
-      background: linear-gradient(135deg, orange, green);
-      font-weight: 700;
+      background: linear-gradient(90deg, orange, green);
+      font-weight: bold;
       color: white;
       border: none;
       border-radius: 0 1rem 1rem 0;
-      box-shadow: 0 0 10px rgba(0,255,0,0.6);
+
+      box-shadow:
+        0 0 10px #00ff99,
+        0 0 20px #00ff99,
+        0 0 30px #00ff99;
+
+      transition: 0.3s;
     }
 
+    .input-container button:hover {
+      transform: scale(1.05);
+      box-shadow:
+        0 0 20px #00ff99,
+        0 0 40px #00ff99,
+        0 0 60px #00ff99;
+    }
+
+    /* 🔥 CODE BOX */
+    #copy {
+      display: inline-block;
+      padding: 10px 20px;
+      border-radius: 10px;
+      margin-top: 10px;
+
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(5px);
+
+      box-shadow:
+        0 0 10px rgba(255,0,0,0.6),
+        0 0 20px rgba(255,0,150,0.6);
+
+      font-size: 20px;
+      letter-spacing: 2px;
+    }
+
+    /* 🎵 MUSIC BUTTON */
     .music-btn{
       position:fixed;
       bottom:15px;
@@ -115,6 +148,8 @@
       border:1px solid #333;
       cursor:pointer;
       z-index:999;
+
+      box-shadow: 0 0 10px rgba(0,255,255,0.5);
     }
   </style>
 </head>
@@ -162,12 +197,12 @@
 
       await navigator.clipboard.writeText(text.replace('CODE: ', ''));
       obj.innerText = "COPIED";
-      obj.style = "color:blue;font-weight:bold";
+      obj.style = "color:lime;font-weight:bold";
 
       setTimeout(() => {
         obj.innerText = text;
         obj.style = "color:white;font-weight:bold";
-      }, 500);
+      }, 800);
     }
 
     b.addEventListener("click", async (e) => {
@@ -191,9 +226,9 @@
         let code = res.data.code || "Service Unavailable";
 
         a.innerHTML =
-          '<font id="copy" onclick="Copy()" style="color:red;font-weight:bold" size="5">CODE: <span style="color:white;font-weight:bold">'
+          '<div id="copy" onclick="Copy()">CODE: <span style="color:white;font-weight:bold">'
           + code +
-          '</span></font><br><br><br>';
+          '</span></div><br><br>';
 
       } catch (err) {
         a.innerHTML = '<a style="color:red;font-weight:bold">Server error</a><br><br>';
