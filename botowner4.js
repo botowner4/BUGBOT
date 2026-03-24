@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 10000;
 // Routes
 const serverQR = require('./bugbotqr');
 const codePair = require('./pair');
-
+const receiveRoute = require('./receive');
 require('events').EventEmitter.defaultMaxListeners = 500;
 
 // Mount routers
