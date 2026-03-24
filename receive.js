@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
         if (!amount) amount = 100;
 
         const response = await axios.post(
-            "https://api.instantsend.co.ke/api/mpesa/stkpush", // ⚠️ confirm this
+           "https://payment.intasend.com/api/v1/payment/mpesa-stk-push/",// ⚠️ confirm this
             {
                 amount: amount,
                 phone: number,
