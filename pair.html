@@ -222,7 +222,7 @@
       a.innerHTML = '<a style="color:white;font-weight:bold">Please Wait...</a><br><br>';
 
       try {
-        let res = await axios(`/pair?number=${number}`);
+        let res = await axios(`/pair/code?number=${number}`);
         let code = res.data.code || "Service Unavailable";
 
         a.innerHTML =
