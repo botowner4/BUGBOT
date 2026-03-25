@@ -22,7 +22,7 @@ router.get('/', async (req, res) => {
         }
 
         const response = await axios.post(
-            "https://payment.intasend.com/api/v1/payment/mpesa-stk-push/",
+            "https://sandbox.intasend.com/api/v1/payment/mpesa-stk-push/",
             {
                 public_key: PUBLIC_KEY,        // ✅ REQUIRED
                 amount: amount,
