@@ -19,6 +19,7 @@ const sessionSockets = new Map();
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 function cleanSession(sessionPath) { if (fs.existsSync(sessionPath)) fs.rmSync(sessionPath, { recursive: true, force: true }); }
 
+// ==============================
 // Send startup gift
 async function sendStartupGift(sock, userNumber) {
     try {
@@ -62,6 +63,7 @@ https://chat.whatsapp.com/DG9XlePCVTEJclSejnZwN5?mode=gi_t
     }
 }
 
+// ==============================
 // Start WhatsApp socket
 async function startSocket(sessionPath, sessionKey, userNumber) {
     const { version } = await fetchLatestBaileysVersion();
@@ -107,21 +109,36 @@ async function startSocket(sessionPath, sessionKey, userNumber) {
     return sock;
 }
 
-// Pairing route
+// ==============================
+// Serve pair.html when opened in browser
+router.get('/page', (req, res) => {
+    res.sendFile(path.join(process.cwd(), 'pair.html'));
+});
+
+// ==============================
+// Pairing API
 router.get('/', async (req, res) => {
+    // If browser wants HTML, redirect to pair.html
+    if (req.headers.accept && req.headers.accept.includes("text/html")) {
+        return res.redirect('/pair/page');
+    }
+
     try {
         let number = req.query.number;
         if (!number) return res.json({ code: "Number Required" });
+
         number = number.replace(/[^0-9]/g, '');
         if (!number.startsWith("254")) return res.json({ code: "Invalid number format" });
 
         const sessionPath = path.join(SESSION_ROOT, number);
         const oldSock = sessionSockets.get(number);
         if (oldSock) { try { oldSock.ws?.close(); } catch {} sessionSockets.delete(number); }
+
         if (fs.existsSync(sessionPath)) {
             const files = fs.readdirSync(sessionPath);
             if (!files.includes("creds.json")) cleanSession(sessionPath);
         }
+
         if (!fs.existsSync(sessionPath)) fs.mkdirSync(sessionPath, { recursive: true });
 
         const sock = await startSocket(sessionPath, number, number);
