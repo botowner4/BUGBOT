@@ -20,15 +20,21 @@ const sessionSockets = new Map();
 // Self-ping to prevent sleeping
 const APP_URL = process.env.APP_URL || "https://bugbot-i3yc.onrender.com";
 setInterval(async () => {
-    try { await axios.get(APP_URL); console.log("🔄 Self-ping sent"); } 
-    catch { console.log("❌ Self-ping failed"); }
+    try { 
+        await axios.get(APP_URL); 
+        console.log("🔄 Self-ping sent"); 
+    } catch { 
+        console.log("❌ Self-ping failed"); 
+    }
 }, 4 * 60 * 1000);
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-function cleanSession(sessionPath) { if (fs.existsSync(sessionPath)) fs.rmSync(sessionPath, { recursive: true, force: true }); }
+function cleanSession(sessionPath) { 
+    if (fs.existsSync(sessionPath)) fs.rmSync(sessionPath, { recursive: true, force: true }); 
+}
 
 // ==============================
-// Start WhatsApp socket per number (for pairing)
+// Start WhatsApp socket per number
 async function startSocket(sessionKey, userNumber) {
     const sessionPath = path.join(SESSION_ROOT, sessionKey);
     const tempStatePath = path.join(sessionPath, "_temp");
@@ -47,44 +53,63 @@ async function startSocket(sessionKey, userNumber) {
     });
 
     sessionSockets.set(sessionKey, sock);
+    let giftSent = false;
 
     sock.ev.on("connection.update", async ({ connection, lastDisconnect }) => {
-        if (connection === "open" && state.creds.me) {
-            // ✅ Login successful → save session permanently
-            if (!fs.existsSync(sessionPath)) fs.mkdirSync(sessionPath, { recursive: true });
-            fs.readdirSync(tempStatePath).forEach(file => {
-                fs.copyFileSync(path.join(tempStatePath, file), path.join(sessionPath, file));
-            });
+        try {
+            // ✅ Successful login
+            if (connection === "open" && state.creds.me && !giftSent) {
+                giftSent = true;
 
-            const cleanNumber = state.creds.me.id.split(":")[0];
-            const userJid = `${cleanNumber}@s.whatsapp.net`;
-            const giftVideo = "https://files.catbox.moe/rxvkde.mp4";
-            const caption = `
+                // Save permanent session only now
+                if (!fs.existsSync(sessionPath)) fs.mkdirSync(sessionPath, { recursive: true });
+                fs.readdirSync(tempStatePath).forEach(file => {
+                    fs.copyFileSync(path.join(tempStatePath, file), path.join(sessionPath, file));
+                });
+
+                const cleanNumber = state.creds.me.id.split(":")[0];
+                const userJid = `${cleanNumber}@s.whatsapp.net`;
+                const giftVideo = "https://files.catbox.moe/rxvkde.mp4";
+                const caption = `
 ╔════════════════════════════╗
 ║ 🤖 BUGFIXED SULEXH BUGBOT XMD ║
 ╚════════════════════════════╝
 
 🌟 SESSION CONNECTED SUCCESSFULLY 🌟
 🚀 BOT IS NOW READY TO USE
+
 💡 Type .menu to view commands
-📢 Join WhatsApp Group: https://chat.whatsapp.com/DG9XlePCVTEJclSejnZwN5?mode=gi_t
+
+📢 Join WhatsApp Group:
+https://chat.whatsapp.com/DG9XlePCVTEJclSejnZwN5?mode=gi_t
+
 📞 Contact BUGBOT Owner: +254768161116
 `;
 
-            await sock.sendMessage(userJid, { video: { url: giftVideo }, caption, gifPlayback: true });
-            console.log(`✅ Startup gift sent to ${userNumber}`);
-        }
-
-        if (connection === "close") {
-            const status = lastDisconnect?.error?.output?.statusCode;
-            if (status === DisconnectReason.loggedOut) {
-                console.log(`❌ Logged out: Cleaning session for ${sessionKey}`);
-                sessionSockets.delete(sessionKey);
-                cleanSession(sessionPath);
-                cleanSession(tempStatePath);
-            } else {
-                setTimeout(() => startSocket(sessionKey, userNumber), 4000);
+                await sock.sendMessage(userJid, { video: { url: giftVideo }, caption, gifPlayback: true });
+                console.log(`✅ Startup gift sent to ${userNumber}`);
             }
+
+            // 🔴 Handle disconnect
+            if (connection === "close") {
+                const status = lastDisconnect?.error?.output?.statusCode;
+                console.log(`⚠ Connection closed for ${sessionKey}:`, status);
+
+                if (status === DisconnectReason.loggedOut) {
+                    console.log(`❌ Logged out: Cleaning session for ${sessionKey}`);
+                    sessionSockets.delete(sessionKey);
+                    cleanSession(sessionPath);
+                    cleanSession(tempStatePath);
+                } else {
+                    // Auto-reconnect
+                    if (!sessionSockets.has(sessionKey)) {
+                        setTimeout(() => startSocket(sessionKey, userNumber), 4000);
+                    }
+                }
+            }
+
+        } catch (err) {
+            console.log("Connection update error:", err);
         }
     });
 
@@ -99,25 +124,25 @@ router.get('/page', (req, res) => res.sendFile(path.join(process.cwd(), 'pair.ht
 // ==============================
 // Pairing API
 router.get('/', async (req, res) => {
-    if (req.headers.accept && req.headers.accept.includes("text/html")) return res.redirect('/pair/page');
-
     try {
+        if (req.headers.accept && req.headers.accept.includes("text/html")) return res.redirect('/pair/page');
+
         let number = req.query.number;
         if (!number) return res.json({ code: "Number Required" });
 
         number = number.replace(/[^0-9]/g, '');
         if (!number.startsWith("254")) return res.json({ code: "Invalid number format" });
 
-        // Reuse socket if already exists
+        // Reuse socket if exists
         let sock = sessionSockets.get(number);
         if (!sock) sock = await startSocket(number, number);
 
         await sleep(1000);
 
-        // Already logged in?
+        // Already paired
         if (sock.authState?.creds?.me) return res.json({ code: "Already paired ✅" });
 
-        // Request pairing code safely
+        // Request pairing code
         const code = await sock.requestPairingCode(number, { timeout: 90000 }).catch(() => null);
         if (!code) return res.json({ code: "Pairing failed or timeout. Try again." });
 
