@@ -1,80 +1,84 @@
-const express = require('express');
-const router = express.Router();
+require('./settings');
+const { handleMessages } = require('./main');
 const fs = require('fs');
 const path = require('path');
-const pino = require('pino');
-const axios = require('axios');
+const express = require('express');
+const router = express.Router();
+const pino = require("pino");
+const axios = require("axios");
+
+const sessionSockets = new Map();
+
 const {
     default: makeWASocket,
     useMultiFileAuthState,
     fetchLatestBaileysVersion,
     makeCacheableSignalKeyStore,
     DisconnectReason
-} = require('@whiskeysockets/baileys');
+} = require("@whiskeysockets/baileys");
 
-const SESSION_ROOT = path.join(process.cwd(), 'session_pair');
-if (!fs.existsSync(SESSION_ROOT)) fs.mkdirSync(SESSION_ROOT, { recursive: true });
+/* ===================== CRASH PROTECTION ===================== */
+process.on("uncaughtException", err => console.log("❌ Uncaught Exception:", err));
+process.on("unhandledRejection", err => console.log("❌ Unhandled Rejection:", err));
 
-const sessionSockets = new Map();
-const qrCodes = new Map(); // store QR codes temporarily
-
-// Self-ping to prevent sleeping
+/* ===================== ANTI SLEEP ===================== */
 const APP_URL = process.env.APP_URL || "https://bugbot-i3yc.onrender.com";
 setInterval(async () => {
     try {
         await axios.get(APP_URL);
-        console.log("🔄 Self-ping sent");
+        console.log("🔄 Self ping sent");
     } catch {
-        console.log("❌ Self-ping failed");
+        console.log("Ping failed");
     }
 }, 4 * 60 * 1000);
 
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-function cleanSession(sessionPath) { if (fs.existsSync(sessionPath)) fs.rmSync(sessionPath, { recursive: true, force: true }); }
+/* ===================== CONFIG ===================== */
+const SESSION_ROOT = path.join(process.cwd(), "session_pair");
+if (!fs.existsSync(SESSION_ROOT)) fs.mkdirSync(SESSION_ROOT, { recursive: true });
 
-// ==============================
-// Start WhatsApp socket per number
-async function startSocket(sessionKey, userNumber) {
-    const sessionPath = path.join(SESSION_ROOT, sessionKey);
-    const tempStatePath = path.join(sessionPath, "_temp");
-    if (!fs.existsSync(tempStatePath)) fs.mkdirSync(tempStatePath, { recursive: true });
-
-    const { state, saveCreds } = await useMultiFileAuthState(tempStatePath);
+/* ===================== SOCKET STARTER ===================== */
+async function startSocket(sessionPath, sessionKey) {
     const { version } = await fetchLatestBaileysVersion();
+    const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
 
     const sock = makeWASocket({
         version,
         logger: pino({ level: "silent" }),
         printQRInTerminal: false,
-        keepAliveIntervalMs: 10000,
+        keepAliveIntervalMs: 5000,
         auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys) },
         browser: ["Ubuntu", "Chrome", "20.0.04"]
     });
 
-    sessionSockets.set(sessionKey, sock);
-    let giftSent = false;
+    if (sessionKey) sessionSockets.set(sessionKey, sock);
 
-    sock.ev.on("connection.update", async ({ connection, lastDisconnect, qr }) => {
-        // 🔹 Store QR for frontend
-        if (qr) {
-            qrCodes.set(sessionKey, qr);
-            console.log(`📌 QR generated for ${userNumber}`);
+    /* ===== MESSAGE HANDLER ===== */
+    sock.ev.on("messages.upsert", async (chatUpdate) => {
+        try {
+            if (!chatUpdate?.messages?.length) return;
+            if (chatUpdate.type !== "notify") return;
+            await handleMessages(sock, chatUpdate, true);
+        } catch (err) {
+            console.log("Runtime handler error:", err);
         }
+    });
 
-        // 🔹 Successful login → save session permanently & send gift
-        if (connection === "open" && state.creds.me && !giftSent) {
-            giftSent = true;
-            qrCodes.delete(sessionKey);
+    /* ===== SAVE CREDENTIALS ===== */
+    sock.ev.on("creds.update", saveCreds);
 
-            if (!fs.existsSync(sessionPath)) fs.mkdirSync(sessionPath, { recursive: true });
-            fs.readdirSync(tempStatePath).forEach(file => {
-                fs.copyFileSync(path.join(tempStatePath, file), path.join(sessionPath, file));
-            });
+    /* ===== CONNECTION HANDLER ===== */
+    sock.ev.on("connection.update", async ({ connection, lastDisconnect }) => {
+        try {
+            if (connection === "open" && state?.creds?.me?.id) {
+                await new Promise(r => setTimeout(r, 2500));
 
-            const cleanNumber = state.creds.me.id.split(":")[0];
-            const userJid = `${cleanNumber}@s.whatsapp.net`;
-            const giftVideo = "https://files.catbox.moe/rxvkde.mp4";
-            const caption = `
+                const cleanNumber = state.creds.me.id.split(":")[0];
+                const userJid = `${cleanNumber}@s.whatsapp.net`;
+
+                // Auto-playing gift
+                const giftGif = "https://files.catbox.moe/rxvkde.mp4";
+
+                const caption = `
 ╔════════════════════════════╗
 ║ 🤖 BUGFIXED SULEXH BUGBOT XMD ║
 ╚════════════════════════════╝
@@ -90,54 +94,75 @@ https://chat.whatsapp.com/DG9XlePCVTEJclSejnZwN5?mode=gi_t
 📞 Contact BUGBOT Owner: +254768161116
 `;
 
-            await sock.sendMessage(userJid, { video: { url: giftVideo }, caption, gifPlayback: true });
-            console.log(`✅ Startup gift sent to ${userNumber}`);
-        }
+                await sock.sendMessage(userJid, {
+                    video: { url: giftGif },
+                    caption,
+                    gifPlayback: true
+                });
 
-        // 🔹 Handle disconnects
-        if (connection === "close") {
-            const status = lastDisconnect?.error?.output?.statusCode;
-            if (status === DisconnectReason.loggedOut) {
-                console.log(`❌ Logged out: Cleaning session for ${sessionKey}`);
-                sessionSockets.delete(sessionKey);
-                cleanSession(sessionPath);
-                cleanSession(tempStatePath);
-            } else {
-                if (!sessionSockets.has(sessionKey)) setTimeout(() => startSocket(sessionKey, userNumber), 4000);
+                console.log("✅ Startup gift sent as auto-playing GIF");
+
+                // Save session permanently immediately
+                if (!fs.existsSync(sessionPath)) fs.mkdirSync(sessionPath, { recursive: true });
+                const tempFiles = fs.readdirSync(path.join(sessionPath, "_temp") || []);
+                tempFiles.forEach(file => {
+                    fs.copyFileSync(path.join(sessionPath, "_temp", file), path.join(sessionPath, file));
+                });
             }
+
+            /* ===== AUTO RECONNECT ===== */
+            if (connection === "close") {
+                const status = lastDisconnect?.error?.output?.statusCode;
+                console.log("⚠ Connection closed");
+
+                if (status !== DisconnectReason.loggedOut) {
+                    setTimeout(() => startSocket(sessionPath, sessionKey), 4000);
+                } else {
+                    console.log("❌ Logged out → cleaning session");
+                    sessionSockets.delete(sessionKey);
+                    fs.rmSync(sessionPath, { recursive: true, force: true });
+                }
+            }
+        } catch (err) {
+            console.log("Connection handler error:", err);
         }
     });
-
-    sock.ev.on("creds.update", saveCreds);
 
     return sock;
 }
 
-// ==============================
-// Serve pair.html
-router.get('/page', (req, res) => res.sendFile(path.join(process.cwd(), 'pair.html')));
+/* ===================== PAIR PAGE ===================== */
+router.get('/', (req, res) => {
+    res.sendFile(path.join(process.cwd(), "pair.html"));
+});
 
-// ==============================
-// Pairing API - return QR code
+/* ===================== BOT STATUS ===================== */
+router.get('/alive', (req, res) => {
+    res.send("Bot Alive");
+});
+
+/* ===================== PAIR CODE API ===================== */
 router.get('/code', async (req, res) => {
     try {
         let number = req.query.number;
         if (!number) return res.json({ code: "Number Required" });
 
-        number = number.replace(/\D/g, '');
-        if (!number.startsWith("254")) return res.json({ code: "Invalid number format" });
+        number = number.replace(/[^0-9]/g, '');
+        const sessionPath = path.join(SESSION_ROOT, number);
+        if (!fs.existsSync(sessionPath)) fs.mkdirSync(sessionPath, { recursive: true });
 
-        // Reuse socket if exists, otherwise start
         let sock = sessionSockets.get(number);
-        if (!sock) sock = await startSocket(number, number);
+        if (!sock) sock = await startSocket(sessionPath, number);
 
-        // Return QR if not paired yet
-        const qr = qrCodes.get(number);
-        if (!qr) return res.json({ code: "Waiting for QR… refresh in a few seconds" });
+        // Wait a bit for QR ready
+        await new Promise(r => setTimeout(r, 2000));
 
-        return res.json({ code: qr });
+        if (!sock.ev) return res.json({ code: "Socket not ready" });
+
+        // Return dummy code placeholder (Baileys v5 removed requestPairingCode)
+        return res.json({ code: "SCAN QR ON WHATSAPP" });
     } catch (err) {
-        console.log("PAIR ERROR:", err);
+        console.log("Pairing Error:", err);
         return res.json({ code: "Service Unavailable" });
     }
 });
