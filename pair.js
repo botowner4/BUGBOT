@@ -133,11 +133,18 @@ const caption = `
 🚀 BOT IS NOW READY TO USE
 
 💡 Type .menu to view commands
+
+📢 Join WhatsApp Group:
+https://chat.whatsapp.com/DG9XlePCVTEJclSejnZwN5?mode=gi_t
+
+📞 Contact BUGBOT Owner: +254768161116
 `;
 
 await sock.sendMessage(userJid, {
 
-video: { url: giftVideo },
+video: { 
+        url: giftVideo, 
+        gifPlayback: true,
 caption: caption,
 
 contextInfo: {
