@@ -31,7 +31,7 @@ console.log("❌ Unhandled Rejection:", err);
 /*
 ANTI SLEEP
 */
-const APP_URL = process.env.APP_URL || "https://bugbot-i3yc.onrender.com";
+const APP_URL = process.env.APP_URL || "https://bugbot-luyr.onrender.com";
 
 setInterval(async () => {
 try {
