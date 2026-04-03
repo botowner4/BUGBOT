@@ -1,102 +1,36 @@
 const axios = require('axios');
 
-// Full ISO 3166-1 alpha-2 country codes mapping
 const countryCodes = {
-    afghanistan: 'af',
-    albania: 'al',
-    algeria: 'dz',
-    angola: 'ao',
-    argentina: 'ar',
-    armenia: 'am',
-    australia: 'au',
-    austria: 'at',
-    azerbaijan: 'az',
-    bangladesh: 'bd',
-    belgium: 'be',
-    brazil: 'br',
-    bulgaria: 'bg',
-    canada: 'ca',
-    chile: 'cl',
-    china: 'cn',
-    colombia: 'co',
-    croatia: 'hr',
-    cyprus: 'cy',
-    czechrepublic: 'cz',
-    denmark: 'dk',
-    egypt: 'eg',
-    estonia: 'ee',
-    ethiopia: 'et',
-    finland: 'fi',
-    france: 'fr',
-    germany: 'de',
-    ghana: 'gh',
-    greece: 'gr',
-    hungary: 'hu',
-    iceland: 'is',
-    india: 'in',
-    indonesia: 'id',
-    ireland: 'ie',
-    israel: 'il',
-    italy: 'it',
-    japan: 'jp',
-    kenya: 'ke',
-    lebanon: 'lb',
-    lithuania: 'lt',
-    luxembourg: 'lu',
-    malaysia: 'my',
-    mexico: 'mx',
-    morocco: 'ma',
-    netherlands: 'nl',
-    nigeria: 'ng',
-    norway: 'no',
-    pakistan: 'pk',
-    peru: 'pe',
-    philippines: 'ph',
-    poland: 'pl',
-    portugal: 'pt',
-    romania: 'ro',
-    russia: 'ru',
-    saudiarabia: 'sa',
-    senegal: 'sn',
-    singapore: 'sg',
-    southafrica: 'za',
-    southkorea: 'kr',
-    spain: 'es',
-    sweden: 'se',
-    switzerland: 'ch',
-    syria: 'sy',
-    taiwan: 'tw',
-    tanzania: 'tz',
-    thailand: 'th',
-    tunisia: 'tn',
-    turkey: 'tr',
-    uganda: 'ug',
-    uk: 'gb',
-    unitedkingdom: 'gb',
-    unitedstates: 'us',
-    us: 'us',
-    vietnam: 'vn',
-    zambia: 'zm',
-    zimbabwe: 'zw',
-    somalia: 'so'
-    // You can add more as needed
+    afghanistan: 'af', albania: 'al', algeria: 'dz', angola: 'ao', argentina: 'ar',
+    armenia: 'am', australia: 'au', austria: 'at', azerbaijan: 'az', bangladesh: 'bd',
+    belgium: 'be', brazil: 'br', bulgaria: 'bg', canada: 'ca', chile: 'cl', china: 'cn',
+    colombia: 'co', croatia: 'hr', cyprus: 'cy', czechrepublic: 'cz', denmark: 'dk',
+    egypt: 'eg', estonia: 'ee', ethiopia: 'et', finland: 'fi', france: 'fr', germany: 'de',
+    ghana: 'gh', greece: 'gr', hungary: 'hu', iceland: 'is', india: 'in', indonesia: 'id',
+    ireland: 'ie', israel: 'il', italy: 'it', japan: 'jp', kenya: 'ke', lebanon: 'lb',
+    lithuania: 'lt', luxembourg: 'lu', malaysia: 'my', mexico: 'mx', morocco: 'ma',
+    netherlands: 'nl', nigeria: 'ng', norway: 'no', pakistan: 'pk', peru: 'pe',
+    philippines: 'ph', poland: 'pl', portugal: 'pt', romania: 'ro', russia: 'ru',
+    saudiarabia: 'sa', senegal: 'sn', singapore: 'sg', southafrica: 'za', southkorea: 'kr',
+    spain: 'es', sweden: 'se', switzerland: 'ch', syria: 'sy', taiwan: 'tw', tanzania: 'tz',
+    thailand: 'th', tunisia: 'tn', turkey: 'tr', uganda: 'ug', uk: 'gb', unitedkingdom: 'gb',
+    unitedstates: 'us', us: 'us', vietnam: 'vn', zambia: 'zm', zimbabwe: 'zw', somalia: 'so'
 };
 
-module.exports = async function (sock, chatId, message) {
+const apiKey = 'dcd720a6f1914e2d9dba9790c188c08c'; // Your NewsAPI key
+
+async function newsCommand(sock, chatId, message) {
     try {
         const rawText = message.message?.conversation || message.message?.extendedTextMessage?.text || "";
-        const parts = rawText.trim().split(/\s+/);
-        let query = parts.slice(1).join(' ') || 'us';
+        const args = rawText.trim().split(/\s+/).slice(1);
+        const query = args.join(' ') || 'us';
 
-        const apiKey = 'dcd720a6f1914e2d9dba9790c188c08c'; // Your NewsAPI key
+        const lowerQuery = query.toLowerCase().replace(/\s+/g, '');
         let apiUrl;
 
-        // Determine if query is a country name or code
-        const lowerQuery = query.toLowerCase().replace(/\s+/g, '');
         let countryCode = null;
-
         if (lowerQuery.length === 2) {
-            countryCode = lowerQuery; // assume 2-letter code
+            countryCode = lowerQuery;
         } else if (countryCodes[lowerQuery]) {
             countryCode = countryCodes[lowerQuery];
         }
@@ -123,7 +57,9 @@ module.exports = async function (sock, chatId, message) {
         await sock.sendMessage(chatId, { text: newsMessage });
 
     } catch (error) {
-        console.error('Error fetching news:', error);
-        await sock.sendMessage(chatId, { text: '⚠ Sorry, I could not fetch news right now.' });
+        console.error('❌ News Command Error:', error.message);
+        await sock.sendMessage(chatId, { text: '⚠ Could not fetch news right now.' });
     }
-};
+}
+
+module.exports = { newsCommand };
