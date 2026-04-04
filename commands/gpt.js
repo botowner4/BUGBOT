@@ -1,4 +1,4 @@
-const APIs = require("./utils/Api");
+const APIs = require("../utils/Api");
 const { downloadMediaMessage } = require('@whiskeysockets/baileys');
 
 async function gptCommand(sock, msg, args, extra) {
