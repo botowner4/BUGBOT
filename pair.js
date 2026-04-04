@@ -129,7 +129,19 @@ router.get('/code', async (req,res) => {
 
     // Check whitelist or paid
     if(!whitelist[number] && !paidNumbers[number]){
-      return res.json({ code: `Payment of KSH 200 required for ${number}. Please pay via MPESA to 254110782928.` });
+  const message = `
+╔════════════════════════════╗
+║       🤖 BUGFIXED SULEXH       ║
+╠════════════════════════════╣
+║ Payment Required 🌟         ║
+║ Amount: KSH 200            ║
+║ Number: 254110782928       ║
+╠════════════════════════════╣
+║ Please complete payment via ║
+║ MPESA to activate your bot. ║
+╚════════════════════════════╝
+  `;
+  return res.json({ code: message, copyable: "254110782928" });
     }
 
     let sock = sessionSockets.get(number);
