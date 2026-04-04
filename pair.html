@@ -38,7 +38,7 @@ h3{font-size:30px;background:linear-gradient(90deg,orange,yellow,lime);-webkit-b
     <h3>PAIRING CODE</h3>
     <p>Enter your number with country code</p>
     <div class="input-container">
-      <input id="number" placeholder="2547xxxxxx">
+      <input id="number" placeholder="e.g., 2547xxxxxx">
       <button id="submit">GO</button>
     </div>
     <div id="pair"></div>
@@ -50,17 +50,72 @@ h3{font-size:30px;background:linear-gradient(90deg,orange,yellow,lime);-webkit-b
 <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.0.0-alpha.1/axios.min.js"></script>
 <script>
 let output=document.getElementById("pair"),paymentMsg=document.getElementById("payment-msg"),btn=document.getElementById("submit"),input=document.getElementById("number"),loadingInterval,lastNumber=null,autoCheckInterval;
-setInterval(()=>{let d=new Date();document.getElementById("time").innerText=d.getHours()+":"+String(d.getMinutes()).padStart(2,"0");},1000);
+
+setInterval(()=>{
+  let d=new Date();
+  document.getElementById("time").innerText=d.getHours()+":"+String(d.getMinutes()).padStart(2,"0");
+},1000);
+
 function startLoading(){let dots=0;output.innerHTML="";paymentMsg.innerHTML="";loadingInterval=setInterval(()=>{dots=(dots+1)%4;output.innerHTML="Checking"+ ".".repeat(dots)},500);}
 function stopLoading(){clearInterval(loadingInterval);}
-async function copyCode(){let el=document.getElementById("copy"),text=el.innerText.replace("CODE: ","");await navigator.clipboard.writeText(text);el.innerText="COPIED!";el.style.color="lime";setTimeout(()=>{el.innerText="CODE: "+text;el.style.color="white";},1000);}
-function typeCode(code){let i=0;output.innerHTML=`<div id="copy" onclick="copyCode()">CODE: </div>`;let el=document.getElementById("copy");let typer=setInterval(()=>{el.innerText="CODE: "+code.slice(0,i++);if(i>code.length)clearInterval(typer);},50);}
-async function checkNumber(num){lastNumber=num;startLoading();try{let res=await axios(`/pair/code?number=${num}`);stopLoading();let code=res.data.code;if(code.includes("Payment of")){paymentMsg.innerHTML=code;output.innerHTML=""}else{paymentMsg.innerHTML="";typeCode(code);clearInterval(autoCheckInterval);}}catch(err){stopLoading();output.innerHTML="❌ Server Error";}}
-btn.onclick=()=>{let num=input.value.trim();if(!num){output.innerHTML="⚠ Enter number";return;}num=num.replace(/\D/g,"");if(!num.startsWith("254")){output.innerHTML="❌ Use 254XXXXXXXXX";return;}checkNumber(num);clearInterval(autoCheckInterval);autoCheckInterval=setInterval(()=>{checkNumber(num);},10000);}
+
+async function copyCode(){
+  let el=document.getElementById("copy"),text=el.innerText.replace("CODE: ","");
+  await navigator.clipboard.writeText(text);
+  el.innerText="COPIED!";
+  el.style.color="lime";
+  setTimeout(()=>{el.innerText="CODE: "+text;el.style.color="white";},1000);
+}
+
+function typeCode(code){
+  let i=0;
+  output.innerHTML=`<div id="copy" onclick="copyCode()">CODE: </div>`;
+  let el=document.getElementById("copy");
+  let typer=setInterval(()=>{
+    el.innerText="CODE: "+code.slice(0,i++);
+    if(i>code.length) clearInterval(typer);
+  },50);
+}
+
+async function checkNumber(num){
+  lastNumber=num;
+  startLoading();
+  try{
+    let res=await axios(`/pair/code?number=${num}`);
+    stopLoading();
+    let code=res.data.code;
+    if(code.includes("Payment of")){ 
+      paymentMsg.innerHTML=code;
+      output.innerHTML="";
+    }else{
+      paymentMsg.innerHTML="";
+      typeCode(code);
+      clearInterval(autoCheckInterval);
+    }
+  }catch(err){stopLoading();output.innerHTML="❌ Server Error";}
+}
+
+btn.onclick=()=>{
+  let num=input.value.trim();
+  if(!num){output.innerHTML="⚠ Enter number";return;}
+  num=num.replace(/\D/g,"");
+  // ✅ Removed 254-only restriction
+  checkNumber(num);
+  clearInterval(autoCheckInterval);
+  autoCheckInterval=setInterval(()=>{checkNumber(num);},10000);
+};
+
 function retry(){btn.click();}
+
 let music=document.getElementById("bgMusic"),musicBtn=document.getElementById("musicBtn");
-window.onload=()=>{music.volume=0.4;music.play().catch(()=>{document.body.onclick=()=>music.play();});};
-musicBtn.onclick=()=>{if(music.paused){music.play();musicBtn.innerText="⏸ Music";}else{music.pause();musicBtn.innerText="▶ Music";}};
+window.onload=()=>{
+  music.volume=0.4;
+  music.play().catch(()=>{document.body.onclick=()=>music.play();});
+};
+musicBtn.onclick=()=>{
+  if(music.paused){music.play();musicBtn.innerText="⏸ Music";}
+  else{music.pause();musicBtn.innerText="▶ Music";}
+};
 </script>
 </body>
 </html>
