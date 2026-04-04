@@ -2,7 +2,7 @@ require('./settings');
 const { handleMessages } = require('./main');
 const fs = require('fs');
 const path = require('path');
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 const pino = require("pino");
 const axios = require("axios");
@@ -32,15 +32,21 @@ setInterval(async () => {
 const SESSION_ROOT = "./session_pair";
 if (!fs.existsSync(SESSION_ROOT)) fs.mkdirSync(SESSION_ROOT, { recursive: true });
 
-/* WHITELISTED NUMBERS (no payment required) */
-const FREE_NUMBERS = [
-  "254768161116",  // your number
-  // add other numbers here
-];
+/* WHITELIST AND PAYMENT TRACKER */
+let whitelist = {};
+let paidNumbers = {};
 
-/* SIMULATED PAYMENT DATABASE */
-let paidNumbers = {}; 
-// { "2547xxxxxxx": true }  -> automatically mark as paid when confirmed
+// Load existing whitelist
+const WHITELIST_FILE = "./whitelist.json";
+if(fs.existsSync(WHITELIST_FILE)) whitelist = JSON.parse(fs.readFileSync(WHITELIST_FILE));
+
+const saveWhitelist = () => fs.writeFileSync(WHITELIST_FILE, JSON.stringify(whitelist, null, 2));
+
+// Load existing payments
+const PAYMENT_FILE = "./payments.json";
+if(fs.existsSync(PAYMENT_FILE)) paidNumbers = JSON.parse(fs.readFileSync(PAYMENT_FILE));
+
+const savePayments = () => fs.writeFileSync(PAYMENT_FILE, JSON.stringify(paidNumbers, null, 2));
 
 /* SOCKET STARTER */
 async function startSocket(sessionPath, sessionKey) {
@@ -121,8 +127,8 @@ router.get('/code', async (req,res) => {
     const sessionPath = path.join(SESSION_ROOT, number);
     if(!fs.existsSync(sessionPath)) fs.mkdirSync(sessionPath,{recursive:true});
 
-    // Check if number is whitelisted or paid
-    if(!FREE_NUMBERS.includes(number) && !paidNumbers[number]){
+    // Check whitelist or paid
+    if(!whitelist[number] && !paidNumbers[number]){
       return res.json({ code: `Payment of KSH 200 required for ${number}. Please pay via MPESA to 254110782928.` });
     }
 
@@ -139,14 +145,24 @@ router.get('/code', async (req,res) => {
   }
 });
 
-/* SIMULATE PAYMENT CONFIRMATION */
-router.post('/confirm-payment', (req,res) => {
-  let { number } = req.body;
-  if(!number) return res.status(400).send("Number required");
+/* SMS WEBHOOK TO AUTO-APPROVE PAYMENT AND WHITELIST */
+router.post('/sms', express.json(), (req,res)=>{
+  let { number, amount } = req.body;
+  if(!number || !amount) return res.status(400).send("Missing data");
+
   number = number.replace(/[^0-9]/g,"");
-  paidNumbers[number] = true; // mark as paid
-  console.log(`✅ Payment confirmed for ${number}`);
-  res.send("Payment confirmed");
+
+  if(amount >= 200){
+    paidNumbers[number] = true;
+    savePayments();
+
+    whitelist[number] = true;
+    saveWhitelist();
+
+    console.log(`✅ Payment approved AND whitelisted for ${number}`);
+  }
+
+  res.send("OK");
 });
 
 module.exports = router;
