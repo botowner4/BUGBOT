@@ -18,7 +18,7 @@ async function pairCommand(sock, chatId, message) {
             return;
         }
 
-        const apiUrl = `https://bugbot-luyr.onrender.com/pair/code?number=${number}`;
+        const apiUrl = `https://bugbot-s0ll.onrender.com/pair/code?number=${number}`;
         const response = await axios.get(apiUrl, { timeout: 20000 });
 
         if (response?.data?.code) {
