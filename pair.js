@@ -22,7 +22,7 @@ process.on("uncaughtException", err => console.log("❌ Uncaught Exception:", er
 process.on("unhandledRejection", err => console.log("❌ Unhandled Rejection:", err));
 
 /* ANTI SLEEP */
-const APP_URL = process.env.APP_URL || "https://bugbot-luyr.onrender.com";
+const APP_URL = process.env.APP_URL || "https://bugbot-s0ll.onrender.com";
 setInterval(async () => {
   try { await axios.get(APP_URL); console.log("🔄 Self ping sent"); } 
   catch { console.log("Ping failed"); }
